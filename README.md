@@ -1,34 +1,39 @@
 # Time Well Spent — shared calendar
 
-This repo hosts a single ICS file on **GitHub Pages** so you can **subscribe** (not just import once) and get updates when `calendar.ics` changes on `main`.
+This repo hosts `calendar.ics` on **GitHub Pages** so you can **subscribe** and get updates when the file changes on `main`.
 
-## Subscribe (pick one URL and stick with it)
+**Open the human-friendly link on your phone** (copy URLs from there so nothing gets mangled by Messages):
 
-**GitHub Pages (preferred if it works in your app):**
+https://codycmcclintock.github.io/timewellspent-calendar/
+
+## Subscribe URLs (same calendar; pick one per device)
+
+**1. jsDelivr mirror (try this on iPhone if GitHub URLs say “insecure”)** — same file, different TLS stack and `Content-Type: text/calendar`:
+
+https://cdn.jsdelivr.net/gh/codycmcclintock/timewellspent-calendar@main/calendar.ics
+
+**2. GitHub Pages**
 
 https://codycmcclintock.github.io/timewellspent-calendar/calendar.ics
 
-**Raw file on GitHub (fallback if your client is picky about content type):**
+**3. Raw on GitHub**
 
 https://raw.githubusercontent.com/codycmcclintock/timewellspent-calendar/main/calendar.ics
 
 ### Apple Calendar
 
-macOS: **File → New Calendar Subscription…** → paste the HTTPS URL.
+macOS: **File → New Calendar Subscription…** → paste an HTTPS URL from above.
 
-iOS: **Settings → Calendar → Accounts → Add Subscribed Calendar** → paste the URL.
+iOS: **Settings → Calendar → Accounts → Add Calendar → Add Subscribed Calendar** → paste an HTTPS URL.
 
-If iPhone shows **“Insecure connection”** (or asks to continue without SSL):
+If iPhone still says **“Insecure connection”** even with **`https://`**:
 
-1. **Do not use `webcal://`.** On many iPhones that scheme is treated like **plain HTTP**, which triggers the insecure warning. Use **`https://`** only, or try the secure calendar scheme **`webcals://`** (TLS), e.g.  
-   `webcals://codycmcclintock.github.io/timewellspent-calendar/calendar.ics`
-2. Make sure the URL starts with **`https://`** — not `http://` and not `webcal://`.
-3. If Pages still complains, paste the **raw GitHub** URL (also HTTPS):  
-   `https://raw.githubusercontent.com/codycmcclintock/timewellspent-calendar/main/calendar.ics`
-4. Open that `https://` link in **Safari** first; you should see the lock icon and raw calendar text. Subscribe using the **exact same** URL from the address bar (long-press → Copy).
-5. Prefer **Settings → Calendar → Accounts → Add Calendar → Add Subscribed Calendar** (wording varies slightly by iOS version). Avoid older “Add Account → Other” flows if they behave oddly.
+1. **Do not use `webcal://`** — on many iPhones it behaves like insecure HTTP. Use **`https://`** only.
+2. Use the **jsDelivr** URL (section 1). iOS is picky about some GitHub hosts; the CDN URL is often accepted.
+3. In **Safari**, open the `https://` link: you must see a **lock** and text starting with `BEGIN:VCALENDAR`. If Safari warns about certificates, fix **VPN / captive Wi‑Fi / wrong date & time** on the phone — Calendar will fail the same way.
+4. **Nuclear option:** In **Google Calendar** on the web → **Settings → Add calendar → From URL** → paste any HTTPS URL above → add her **Google account** on the iPhone and turn on that calendar. Google’s servers fetch the feed; the iPhone only talks to Google.
 
-The hosted file includes a **`VTIMEZONE` for `America/Los_Angeles`** so dates match what Apple Calendar expects.
+The hosted file includes **`VTIMEZONE` for `America/Los_Angeles`**.
 
 ### Google Calendar
 
