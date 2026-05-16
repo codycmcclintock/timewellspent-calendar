@@ -31,3 +31,16 @@ iOS: **Settings → Calendar → Accounts → Add Subscribed Calendar** → past
 ## Collaborators
 
 Add people with **Write** access under **Settings → Collaborators** so they can edit the file too.
+
+Repo settings (invite UI): https://github.com/codycmcclintock/timewellspent-calendar/settings/access
+
+From a machine with GitHub CLI, you can invite someone by GitHub username (they still need to accept the email/GitHub invite):
+
+```bash
+gh api --method PUT "repos/codycmcclintock/timewellspent-calendar/collaborators/PARTNER_USERNAME" -f permission=push
+```
+
+## Next steps (manual)
+
+1. **Subscribe** on each phone using one of the URLs above (same URL on both devices).
+2. **Invite your partner** with write access using the settings link or `gh` command (replace `PARTNER_USERNAME`).
