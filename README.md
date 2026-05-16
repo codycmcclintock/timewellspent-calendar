@@ -18,12 +18,15 @@ macOS: **File → New Calendar Subscription…** → paste the HTTPS URL.
 
 iOS: **Settings → Calendar → Accounts → Add Subscribed Calendar** → paste the URL.
 
-If iPhone refuses the subscription or shows a generic error:
+If iPhone shows **“Insecure connection”** (or asks to continue without SSL):
 
-1. Use **HTTPS** exactly as shown (copy from Safari so there are no spaces).
-2. Try the same path with **`webcal://`** instead of `https://` (some iOS versions behave better):  
-   `webcal://codycmcclintock.github.io/timewellspent-calendar/calendar.ics`
-3. If you subscribed **before** we added timezone data to the file, **delete that subscribed calendar** and add it again so iOS pulls the fixed feed.
+1. **Do not use `webcal://`.** On many iPhones that scheme is treated like **plain HTTP**, which triggers the insecure warning. Use **`https://`** only, or try the secure calendar scheme **`webcals://`** (TLS), e.g.  
+   `webcals://codycmcclintock.github.io/timewellspent-calendar/calendar.ics`
+2. Make sure the URL starts with **`https://`** — not `http://` and not `webcal://`.
+3. If Pages still complains, paste the **raw GitHub** URL (also HTTPS):  
+   `https://raw.githubusercontent.com/codycmcclintock/timewellspent-calendar/main/calendar.ics`
+4. Open that `https://` link in **Safari** first; you should see the lock icon and raw calendar text. Subscribe using the **exact same** URL from the address bar (long-press → Copy).
+5. Prefer **Settings → Calendar → Accounts → Add Calendar → Add Subscribed Calendar** (wording varies slightly by iOS version). Avoid older “Add Account → Other” flows if they behave oddly.
 
 The hosted file includes a **`VTIMEZONE` for `America/Los_Angeles`** so dates match what Apple Calendar expects.
 
