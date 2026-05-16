@@ -24,7 +24,10 @@ https://raw.githubusercontent.com/codycmcclintock/timewellspent-calendar/main/ca
 
 macOS: **File → New Calendar Subscription…** → paste an HTTPS URL from above.
 
-iOS: **Settings → Calendar → Accounts → Add Calendar → Add Subscribed Calendar** → paste an HTTPS URL.
+**iPhone (recommended):** **Calendar** app → **Calendars** (bottom) → **Add Calendar** → **Add Subscription Calendar** → paste the full `https://…calendar.ics` URL → **Find** / **Subscribe**.  
+Apple documents this flow [here](https://support.apple.com/guide/iphone/iph3d1110d4/ios).
+
+**iPhone (Settings):** **Settings → Calendar → Accounts → Add Calendar → Add Subscribed Calendar**. The first field is labeled **Server** even though you paste a **full URL** — that is expected. **Leave username and password blank.** Keep **SSL on**. If you see **“Cannot connect using SSL”**, do **not** tap **Continue** without SSL (that usually leads to “unable to verify account”). **Cancel**, then try the **jsDelivr** URL instead.
 
 If iPhone still says **“Insecure connection”** even with **`https://`**:
 

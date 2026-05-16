@@ -30,15 +30,55 @@
         color: #52525b;
         font-size: 0.9rem;
       }
+      .warn {
+        background: #fff7ed;
+        border-left: 4px solid #ea580c;
+        padding: 1rem 1rem 1rem 1.25rem;
+        margin: 1.5rem 0;
+      }
+      .warn strong {
+        display: block;
+        margin-bottom: 0.5rem;
+      }
+      .warn ol {
+        margin: 0.5rem 0 0 1.1rem;
+        padding: 0;
+      }
     </style>
   </head>
   <body>
     <h1>Time Well Spent calendar</h1>
+
+    <div class="warn">
+      <strong>“Cannot connect using SSL” then “unable to verify account”?</strong>
+      <p style="margin: 0.35rem 0 0">
+        You do <strong>not</strong> need a username or password for this calendar (leave them blank).
+        When iOS asks about SSL, do <strong>not</strong> choose “Continue” without SSL — that breaks the
+        link. Tap <strong>Cancel</strong>, then use the <strong>jsDelivr</strong> URL below (same calendar,
+        different server). In the field labeled <strong>Server</strong>, paste the <em>entire</em>
+        <code style="display:inline;padding:0.1em 0.25em">https://…calendar.ics</code> URL even though
+        the label says “Server” — that is normal for Apple.
+      </p>
+      <p style="margin: 0.75rem 0 0; font-size: 0.9rem">
+        If the screen title says <strong>CalDAV</strong> or <strong>CardDAV</strong>, go back — that is
+        the wrong type of account. You want <strong>Subscribed Calendar</strong> or
+        <strong>Subscription Calendar</strong> only.
+      </p>
+    </div>
+
+    <h2>Easiest path (Apple’s current guide)</h2>
     <p>
-      On iPhone:
-      <strong>Settings → Calendar → Accounts → Add Calendar → Add Subscribed Calendar</strong>
-      (menu names vary slightly by iOS version). Paste <em>one</em> URL below — use
-      <strong>https</strong> only (not <code style="display:inline;padding:0.1em 0.25em">webcal://</code>).
+      Open the <strong>Calendar</strong> app → tap <strong>Calendars</strong> (bottom center) →
+      <strong>Add Calendar</strong> → <strong>Add Subscription Calendar</strong> → paste one
+      <code style="display:inline;padding:0.1em 0.25em">https://</code> URL from below →
+      <strong>Find</strong> / <strong>Subscribe</strong>.
+    </p>
+
+    <h2>Settings path (older wording)</h2>
+    <p>
+      <strong>Settings → Calendar → Accounts → Add Calendar → Add Subscribed Calendar</strong>.
+      Paste a full <code style="display:inline;padding:0.1em 0.25em">https://…calendar.ics</code> URL
+      into <strong>Server</strong>. Leave username and password empty. Keep SSL on.
     </p>
 
     <h2>Try this first if iPhone says “insecure connection”</h2>
