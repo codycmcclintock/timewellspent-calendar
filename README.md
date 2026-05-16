@@ -18,6 +18,15 @@ macOS: **File → New Calendar Subscription…** → paste the HTTPS URL.
 
 iOS: **Settings → Calendar → Accounts → Add Subscribed Calendar** → paste the URL.
 
+If iPhone refuses the subscription or shows a generic error:
+
+1. Use **HTTPS** exactly as shown (copy from Safari so there are no spaces).
+2. Try the same path with **`webcal://`** instead of `https://` (some iOS versions behave better):  
+   `webcal://codycmcclintock.github.io/timewellspent-calendar/calendar.ics`
+3. If you subscribed **before** we added timezone data to the file, **delete that subscribed calendar** and add it again so iOS pulls the fixed feed.
+
+The hosted file includes a **`VTIMEZONE` for `America/Los_Angeles`** so dates match what Apple Calendar expects.
+
 ### Google Calendar
 
 **Settings → Add calendar → From URL** → paste the HTTPS URL.
