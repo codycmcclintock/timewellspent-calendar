@@ -36,6 +36,7 @@
 | `RESEND_API_KEY` | optional |
 | `RESEND_FROM_EMAIL` | optional |
 | `ANTHROPIC_API_KEY` | voice planning (recommended) |
+| `ANTHROPIC_MODEL` | optional; defaults to `claude-haiku-4-5-20251001` |
 | `OPENAI_API_KEY` | voice planning (alternative) |
 
 4. Deploy. Sign in with **Apple** or **Google** only (no dev email login in production).
