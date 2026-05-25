@@ -28,8 +28,8 @@ export function CalendarLinkCard({ feedUrl }: { feedUrl: string }) {
   return (
     <div className="rounded-2xl bg-card p-5 ring-1 ring-black/5">
       <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue/10">
-          <Calendar className="h-6 w-6 text-blue" />
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-coral/10">
+          <Calendar className="h-6 w-6 text-coral" />
         </div>
         <div>
           <h3 className="font-semibold text-ink">Your calendar link</h3>
@@ -57,7 +57,7 @@ export function CalendarLinkCard({ feedUrl }: { feedUrl: string }) {
         <button
           type="button"
           onClick={share}
-          className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#2563eb] py-2.5 text-sm font-medium text-white"
+          className="flex flex-1 items-center justify-center gap-2 rounded-full bg-coral py-2.5 text-sm font-medium text-white"
         >
           <Share2 className="h-4 w-4" />
           Share

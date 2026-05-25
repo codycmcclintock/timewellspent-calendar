@@ -3,6 +3,9 @@ import { addDays, endOfWeek, startOfDay } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/user-context";
 import { HomeTabs } from "@/components/HomeTabs";
+import { PartnerInviteBanner } from "@/components/PartnerInviteBanner";
+import { FeaturedTripCard } from "@/components/FeaturedTripCard";
+import { joinInviteUrl } from "@/lib/app-url";
 import {
   getWeekStart,
   parseWeekParam,
@@ -27,7 +30,7 @@ export default async function HomePage({
   const weekStart = parseWeekParam(params.week ?? null);
   const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
 
-  const [{ data: todayEvents }, { data: weekEvents }, { data: upcomingEvents }, { data: drafts }] =
+  const [{ data: todayEvents }, { data: weekEvents }, { data: upcomingEvents }, { data: drafts }, { data: couple }] =
     await Promise.all([
       supabase
         .from("events")
@@ -55,10 +58,37 @@ export default async function HomePage({
         .select("*")
         .eq("couple_id", ctx.coupleId)
         .order("created_at", { ascending: false }),
+      supabase
+        .from("couples")
+        .select("invite_token")
+        .eq("id", ctx.coupleId)
+        .single(),
     ]);
+
+  const inviteUrl = couple?.invite_token
+    ? joinInviteUrl(couple.invite_token)
+    : null;
+
+  const showTripCard = today < new Date("2026-05-19");
 
   return (
     <Suspense fallback={<p className="text-muted">Loading…</p>}>
+      {!ctx.partner && inviteUrl ? (
+        <div className="mb-6">
+          <PartnerInviteBanner inviteUrl={inviteUrl} />
+        </div>
+      ) : null}
+
+      {showTripCard ? (
+        <FeaturedTripCard
+          href="/plans/joshua-tree"
+          title="Joshua Tree"
+          dates="May 15–18, 2026"
+          subtitle="Desert weekend — your full itinerary is ready."
+          coverImageUrl="https://images.unsplash.com/photo-1501785881917-7a2b7e9a3f1e?w=800&q=80"
+        />
+      ) : null}
+
       <HomeTabs
         todayEvents={(todayEvents ?? []) as CalendarEvent[]}
         weekEvents={(weekEvents ?? []) as CalendarEvent[]}

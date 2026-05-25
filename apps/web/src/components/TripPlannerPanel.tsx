@@ -97,9 +97,9 @@ export function TripPlannerPanel({ hasEvents }: { hasEvents: boolean }) {
   }
 
   return (
-    <section className="rounded-2xl bg-gradient-to-br from-[#2563eb]/8 via-card to-[#b85c38]/10 p-5 ring-1 ring-black/5">
+    <section className="rounded-2xl bg-gradient-to-br from-coral/8 via-card to-terracotta/10 p-5 ring-1 ring-black/5">
       <div className="flex items-start gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#2563eb] text-white">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-coral text-white">
           <Sparkles className="h-5 w-5" />
         </div>
         <div>
@@ -117,7 +117,7 @@ export function TripPlannerPanel({ hasEvents }: { hasEvents: boolean }) {
         onChange={(e) => setText(e.target.value)}
         placeholder={PLACEHOLDER}
         rows={5}
-        className="mt-4 w-full resize-none rounded-xl border border-black/10 bg-white/80 px-4 py-3 text-sm text-ink placeholder:text-muted focus:border-[#2563eb] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20"
+        className="mt-4 w-full resize-none rounded-xl border border-black/10 bg-white/80 px-4 py-3 text-sm text-ink placeholder:text-muted focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/20"
       />
 
       {error ? (
@@ -147,7 +147,7 @@ export function TripPlannerPanel({ hasEvents }: { hasEvents: boolean }) {
           type="button"
           disabled={pending || text.trim().length < 8}
           onClick={runAi}
-          className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-[#2563eb] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50 min-w-[140px]"
+          className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-coral px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50 min-w-[140px]"
         >
           <Sparkles className="h-4 w-4" />
           {pending ? "Building…" : "Build trip"}

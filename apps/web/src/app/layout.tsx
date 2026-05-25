@@ -28,7 +28,7 @@ export default function RootLayout({
       className={`${dmSans.variable} ${fraunces.variable} h-full antialiased`}
       style={{ colorScheme: "light" }}
     >
-      <body className="min-h-full bg-[#f5f5f7] text-[#1a1a1a]">{children}</body>
+      <body className="min-h-full bg-shell text-ink">{children}</body>
     </html>
   );
 }

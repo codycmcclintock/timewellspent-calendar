@@ -1,11 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --shell: #f5f5f7;
+  --shell: #fafafa;
   --planner: #f7f4ef;
   --ink: #1a1a1a;
   --muted: #6b7280;
-  --cta: #2563eb;
+  --coral: #e85d4a;
+  --coral-deep: #d14a38;
+  --cta: #e85d4a;
   --blue: #2563eb;
   --terracotta: #b85c38;
   --card: #ffffff;
@@ -17,6 +19,8 @@
   --color-planner: var(--planner);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
+  --color-coral: var(--coral);
+  --color-coral-deep: var(--coral-deep);
   --color-cta: var(--cta);
   --color-blue: var(--blue);
   --color-terracotta: var(--terracotta);
@@ -40,9 +44,8 @@ body {
   font-family: var(--font-fraunces), Georgia, serif;
 }
 
-/* Explicit utilities so theme tokens always render with color */
 @utility bg-shell {
-  background-color: #f5f5f7;
+  background-color: #fafafa;
 }
 @utility bg-planner {
   background-color: #f7f4ef;
@@ -51,7 +54,13 @@ body {
   background-color: #ffffff;
 }
 @utility bg-cta {
-  background-color: #2563eb;
+  background-color: #e85d4a;
+}
+@utility bg-coral {
+  background-color: #e85d4a;
+}
+@utility bg-coral-deep {
+  background-color: #d14a38;
 }
 @utility bg-blue {
   background-color: #2563eb;
@@ -68,12 +77,24 @@ body {
 @utility text-muted {
   color: #6b7280;
 }
+@utility text-cta {
+  color: #e85d4a;
+}
+@utility text-coral {
+  color: #e85d4a;
+}
 @utility text-blue {
   color: #2563eb;
 }
 @utility text-terracotta {
   color: #b85c38;
 }
+@utility border-coral {
+  border-color: #e85d4a;
+}
 @utility border-ink {
   border-color: #1a1a1a;
+}
+@utility ring-coral {
+  --tw-ring-color: #e85d4a;
 }

@@ -33,11 +33,21 @@ export async function getUserContext(): Promise<UserContext | null> {
   const partnerRow = members?.find((m) => m.user_id !== user.id);
   const partner = partnerRow?.profiles as Profile | null | undefined;
 
+  const { data: couple } = await supabase
+    .from("couples")
+    .select("is_pro")
+    .eq("id", membership.couple_id)
+    .single();
+
+  const isPro =
+    couple?.is_pro === true || process.env.RUFFLES_DEMO_PRO === "true";
+
   return {
     userId: user.id,
     coupleId: membership.couple_id,
     profile: profile as Profile,
     partner: partner ?? null,
+    isPro,
   };
 }
 

@@ -14,7 +14,9 @@
 2. SQL Editor → run migrations in order:  
    [`001_initial.sql`](supabase/migrations/001_initial.sql),  
    [`002_profiles_rls.sql`](supabase/migrations/002_profiles_rls.sql),  
-   [`003_event_ai_meta.sql`](supabase/migrations/003_event_ai_meta.sql).
+   [`003_event_ai_meta.sql`](supabase/migrations/003_event_ai_meta.sql),  
+   [`004_profiles_couple_read.sql`](supabase/migrations/004_profiles_couple_read.sql),  
+   [`005_plans_wishlist.sql`](supabase/migrations/005_plans_wishlist.sql).
 3. **Authentication → Providers:** enable **Google** and **Apple**.
 4. **Authentication → URL configuration:** add redirect URLs:
    - `https://YOUR-VERCEL-DOMAIN/auth/callback`
@@ -79,8 +81,21 @@ After deploy, “Sign in with Google” should list calendar permissions on the 
 ### Joshua Tree trip UI
 
 1. Open **Plans → Joshua Tree** (or `/plans/joshua-tree`).
-2. **Import full Joshua Tree calendar** loads `public/calendar.ics` (~27 events) with day themes and rich descriptions.
+2. The bundled `public/calendar.ics` (~27 events) **imports automatically** on first visit.
 3. Use the horizontal day picker, expand cards, and **Add to Google Calendar** links per event.
+
+### Partner invite
+
+Share **Profile → Bring her into Ruffles** or the home invite banner. Link format: `/join/{token}` (preserved through sign-in). Run migration `004_profiles_couple_read.sql` so partner names show in the header.
+
+### Plans hub (links → city plans)
+
+1. **Plans** — paste an Instagram/TikTok URL; Ruffles detects the city and creates/opens that plan.
+2. Saved links go to an **unsorted** list on the plan (free).
+3. **Smart Plan (pro)** — AI schedules stops and gap ideas (`RUFFLES_DEMO_PRO=true` in env for local demo).
+4. **Create plan** — `/plans/new` for manual Where? / When? setup.
+
+**Quick links:** [Production plans](https://timewellspent-calendar.vercel.app/plans) · [Localhost plans](http://localhost:3000/plans)
 
 ### 3. GitHub
 

@@ -22,7 +22,7 @@ function scopeLabel(scope: string, createdBy: string | null, userId: string) {
 }
 
 function scopeClass(scope: string, createdBy: string | null, userId: string) {
-  if (scope === "us") return "bg-[#2563eb] text-white";
+  if (scope === "us") return "bg-coral text-white";
   if (createdBy === userId) return "bg-[#b85c38]/15 text-[#b85c38]";
   return "bg-[#6b7280]/15 text-[#6b7280]";
 }

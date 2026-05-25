@@ -45,7 +45,7 @@ export function TripDayTimeline({
             <h3 className="font-serif text-xl font-semibold text-ink">
               {dayLabel(dayEvents[0].starts_at)}
             </h3>
-            <span className="rounded-full bg-[#2563eb]/10 px-2.5 py-0.5 text-xs font-medium text-[#2563eb]">
+            <span className="rounded-full bg-coral/10 px-2.5 py-0.5 text-xs font-medium text-coral">
               {dayEvents.length} {dayEvents.length === 1 ? "stop" : "stops"}
             </span>
           </div>

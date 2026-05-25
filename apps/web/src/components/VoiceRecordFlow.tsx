@@ -170,7 +170,7 @@ export function VoiceRecordFlow({
 
           {phase === "parsing" ? (
             <div className="mt-8 flex flex-col items-center gap-3 py-8">
-              <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#2563eb] border-t-transparent" />
+              <div className="h-10 w-10 animate-spin rounded-full border-2 border-coral border-t-transparent" />
               <p className="text-sm font-medium text-muted">
                 Pulling out the moments…
               </p>
@@ -182,7 +182,7 @@ export function VoiceRecordFlow({
                   type="button"
                   disabled={pending}
                   onClick={runParse}
-                  className="w-full max-w-sm rounded-full bg-[#2563eb] py-3 text-sm font-semibold text-white disabled:opacity-50"
+                  className="w-full max-w-sm rounded-full bg-coral py-3 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   Pull out the moments
                 </button>
@@ -244,7 +244,7 @@ export function VoiceRecordFlow({
               type="button"
               disabled={pending || proposed.length === 0}
               onClick={addAll}
-              className="w-full rounded-full bg-[#2563eb] py-4 text-sm font-semibold text-white shadow-lg disabled:opacity-50"
+              className="w-full rounded-full bg-coral py-4 text-sm font-semibold text-white shadow-lg disabled:opacity-50"
             >
               {pending ? "Saving…" : `Add all (${proposed.length})`}
             </button>

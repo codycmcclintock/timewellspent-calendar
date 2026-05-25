@@ -67,7 +67,7 @@ export function EventSheet({
                 type="button"
                 onClick={() => setScope(s)}
                 className={`rounded-full px-4 py-2 text-sm font-medium ${
-                  scope === s ? "bg-[#2563eb] text-white" : "bg-[#f5f5f7] text-[#6b7280]"
+                  scope === s ? "bg-coral text-white" : "bg-shell text-muted"
                 }`}
               >
                 {s === "us" ? "Us" : "Mine"}
@@ -107,7 +107,7 @@ export function EventSheet({
             type="button"
             disabled={!title || pending}
             onClick={submit}
-            className="flex-1 rounded-full bg-[#2563eb] py-3 text-sm font-medium text-white disabled:opacity-50"
+            className="flex-1 rounded-full bg-coral py-3 text-sm font-medium text-white disabled:opacity-50"
           >
             {pending ? "Saving…" : "Add"}
           </button>

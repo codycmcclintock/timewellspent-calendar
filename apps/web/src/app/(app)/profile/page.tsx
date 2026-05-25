@@ -1,7 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext, ensureIcsToken } from "@/lib/user-context";
 import { feedUrl } from "@/lib/ics-export";
+import { joinInviteUrl } from "@/lib/app-url";
 import { CalendarLinkCard } from "@/components/CalendarLinkCard";
+import { PartnerInviteBanner } from "@/components/PartnerInviteBanner";
 import { redirect } from "next/navigation";
 import { signOut } from "@/app/actions";
 import type { Todo } from "@/lib/types";
@@ -21,26 +23,37 @@ export default async function ProfilePage() {
     .eq("id", ctx.coupleId)
     .single();
 
+  const inviteUrl = couple?.invite_token
+    ? joinInviteUrl(couple.invite_token)
+    : null;
+
   const { data: todos } = await supabase
     .from("todos")
     .select("*")
     .eq("couple_id", ctx.coupleId)
     .order("created_at", { ascending: false });
 
-  const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/onboarding?join=${couple?.invite_token}`;
-
   return (
     <div className="space-y-6">
       <section>
         <h2 className="font-serif text-2xl font-semibold">Profile</h2>
         <p className="text-sm text-muted">{ctx.profile.display_name}</p>
+        {ctx.partner ? (
+          <p className="mt-1 text-sm text-ink/80">
+            Planning with {ctx.partner.display_name}
+          </p>
+        ) : null}
       </section>
 
-      <CalendarLinkCard feedUrl={url} />
+      {!ctx.partner && inviteUrl ? (
+        <PartnerInviteBanner inviteUrl={inviteUrl} />
+      ) : null}
 
-      <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <h3 className="font-semibold text-ink">Invite partner</h3>
-        <p className="mt-1 break-all font-mono text-xs text-muted">{inviteUrl}</p>
+      <section>
+        <h3 className="mb-2 text-sm font-semibold text-muted">
+          Also add to Apple Calendar
+        </h3>
+        <CalendarLinkCard feedUrl={url} />
       </section>
 
       <TodoList initialTodos={(todos ?? []) as Todo[]} />

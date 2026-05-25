@@ -18,7 +18,11 @@ export interface Couple {
   id: string;
   name: string | null;
   invite_token: string;
+  is_pro?: boolean;
 }
+
+export type PlanStatus = "building" | "scheduled";
+export type PlanDateMode = "flexible_month" | "exact";
 
 export interface PlanDayTheme {
   title: string;
@@ -35,6 +39,12 @@ export interface Plan {
   starts_on: string | null;
   ends_on: string | null;
   day_themes?: Record<string, PlanDayTheme> | null;
+  destination?: string | null;
+  destination_key?: string | null;
+  status?: PlanStatus;
+  trip_length_days?: number | null;
+  date_mode?: PlanDateMode;
+  flexible_month?: string | null;
 }
 
 export interface CalendarEvent {
@@ -73,12 +83,25 @@ export interface CalendarEvent {
 export interface Draft {
   id: string;
   couple_id: string;
+  plan_id?: string | null;
   created_by: string | null;
   source_url: string | null;
   source_type: string | null;
   title: string | null;
   status: string;
+  suggested_day?: string | null;
+  sort_order?: number;
+  place_name?: string | null;
+  raw_metadata?: Record<string, unknown> | null;
   created_at: string;
+}
+
+export interface UserContext {
+  userId: string;
+  coupleId: string;
+  profile: Profile;
+  partner: Profile | null;
+  isPro?: boolean;
 }
 
 export interface Todo {
@@ -89,9 +112,3 @@ export interface Todo {
   completed_at: string | null;
 }
 
-export interface UserContext {
-  userId: string;
-  coupleId: string;
-  profile: Profile;
-  partner: Profile | null;
-}

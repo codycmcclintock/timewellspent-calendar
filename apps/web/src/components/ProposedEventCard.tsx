@@ -33,7 +33,7 @@ export function ProposedEventCard({
 
   if (editing) {
     return (
-      <article className="rounded-2xl bg-card p-4 ring-2 ring-[#2563eb]/30">
+      <article className="rounded-2xl bg-card p-4 ring-2 ring-coral/30">
         <input
           className="mb-2 w-full rounded-lg border border-black/10 px-3 py-2 text-sm font-semibold"
           value={draft.title}
@@ -86,7 +86,7 @@ export function ProposedEventCard({
           <button
             type="button"
             onClick={saveEdit}
-            className="flex-1 rounded-full bg-[#2563eb] py-2 text-sm font-semibold text-white"
+            className="flex-1 rounded-full bg-coral py-2 text-sm font-semibold text-white"
           >
             Save
           </button>

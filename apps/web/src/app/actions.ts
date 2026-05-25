@@ -364,22 +364,12 @@ export async function importLegacyCalendar(filePath?: string) {
   }
 
   let inserted = 0;
-  for (const e of parsed) {
+  let linked = 0;
+  for (const [i, e] of parsed.entries()) {
     if (/SHARED CAL TEST/i.test(e.title)) continue;
 
-    const { data: existing } = await supabase
-      .from("events")
-      .select("id")
-      .eq("couple_id", coupleId)
-      .eq("legacy_uid", e.legacy_uid)
-      .maybeSingle();
-
-    if (existing) continue;
-
-    await supabase.from("events").insert({
-      couple_id: coupleId,
+    const payload = {
       plan_id: planId,
-      created_by: user.id,
       scope: e.scope,
       title: e.title,
       description: e.description,
@@ -391,7 +381,33 @@ export async function importLegacyCalendar(filePath?: string) {
       hours_label: e.hours_label,
       notes: e.notes,
       bring_items: e.bring_items?.length ? e.bring_items : [],
+      sort_order: i,
+    };
+
+    const { data: existing } = await supabase
+      .from("events")
+      .select("id, plan_id")
+      .eq("couple_id", coupleId)
+      .eq("legacy_uid", e.legacy_uid)
+      .maybeSingle();
+
+    if (existing) {
+      if (planId && (!existing.plan_id || existing.plan_id !== planId)) {
+        await supabase
+          .from("events")
+          .update(payload)
+          .eq("id", existing.id)
+          .eq("couple_id", coupleId);
+        linked++;
+      }
+      continue;
+    }
+
+    await supabase.from("events").insert({
+      couple_id: coupleId,
+      created_by: user.id,
       legacy_uid: e.legacy_uid,
+      ...payload,
     });
     inserted++;
   }
@@ -399,11 +415,50 @@ export async function importLegacyCalendar(filePath?: string) {
   revalidatePath("/home");
   revalidatePath("/plans");
   revalidatePath("/plans/joshua-tree");
-  return { inserted, total: parsed.length };
+  return { inserted, linked, total: parsed.length };
 }
 
 export async function importJoshuaTreeCalendar() {
   return importLegacyCalendar();
+}
+
+const JT_RANGE_START = "2026-05-15T07:00:00-07:00";
+const JT_RANGE_END = "2026-05-19T06:59:59-07:00";
+
+/** Idempotent: link bundled ICS + orphan events in trip window to joshua-tree plan. */
+export async function ensureJoshuaTreeItinerary() {
+  const result = await importLegacyCalendar();
+  const { supabase, coupleId } = await requireCouple();
+
+  const { data: plan } = await supabase
+    .from("plans")
+    .select("id")
+    .eq("couple_id", coupleId)
+    .eq("slug", "joshua-tree")
+    .maybeSingle();
+
+  if (!plan) return result;
+
+  const { data: orphans } = await supabase
+    .from("events")
+    .select("id")
+    .eq("couple_id", coupleId)
+    .is("plan_id", null)
+    .gte("starts_at", JT_RANGE_START)
+    .lte("starts_at", JT_RANGE_END);
+
+  if (orphans?.length) {
+    await supabase
+      .from("events")
+      .update({ plan_id: plan.id })
+      .eq("couple_id", coupleId)
+      .is("plan_id", null)
+      .gte("starts_at", JT_RANGE_START)
+      .lte("starts_at", JT_RANGE_END);
+  }
+
+  revalidatePath("/plans/joshua-tree");
+  return result;
 }
 
 async function upsertJoshuaTreePlan(
@@ -566,26 +621,312 @@ export async function deleteEvent(id: string) {
 }
 
 export async function createDraft(sourceUrl: string, title?: string) {
-  const { supabase, user, coupleId } = await requireCouple();
-  let sourceType: "paste" | "instagram" | "tiktok" = "paste";
-  if (sourceUrl.includes("instagram")) sourceType = "instagram";
-  if (sourceUrl.includes("tiktok")) sourceType = "tiktok";
+  return ingestLink(sourceUrl, title ? { title } : undefined);
+}
+
+export type CreatePlanInput = {
+  destination: string;
+  destinationKey: string;
+  dateMode: "flexible_month" | "exact";
+  flexibleMonth?: string | null;
+  startsOn?: string | null;
+  endsOn?: string | null;
+  tripLengthDays?: number;
+  title?: string;
+};
+
+export async function createPlan(input: CreatePlanInput) {
+  const { supabase, coupleId } = await requireCouple();
+  const { uniquePlanSlug } = await import("@/lib/plan-utils");
+
+  const slug = uniquePlanSlug(input.destinationKey);
 
   const { data, error } = await supabase
-    .from("drafts")
+    .from("plans")
     .insert({
       couple_id: coupleId,
-      created_by: user.id,
-      source_url: sourceUrl,
-      source_type: sourceType,
-      title: title ?? sourceUrl.slice(0, 80),
+      slug,
+      title: input.title ?? input.destination,
+      destination: input.destination,
+      destination_key: input.destinationKey,
+      status: "building",
+      date_mode: input.dateMode,
+      flexible_month: input.flexibleMonth ?? null,
+      starts_on: input.startsOn ?? null,
+      ends_on: input.endsOn ?? null,
+      trip_length_days: input.tripLengthDays ?? 3,
     })
     .select()
     .single();
 
   if (error) throw error;
-  revalidatePath("/home");
+  revalidatePath("/plans");
   return data;
+}
+
+export type UpdatePlanSettingsInput = {
+  planId: string;
+  tripLengthDays?: number;
+  dateMode?: "flexible_month" | "exact";
+  flexibleMonth?: string | null;
+  startsOn?: string | null;
+  endsOn?: string | null;
+};
+
+export async function updatePlanSettings(input: UpdatePlanSettingsInput) {
+  const { supabase, coupleId } = await requireCouple();
+  const { error } = await supabase
+    .from("plans")
+    .update({
+      trip_length_days: input.tripLengthDays,
+      date_mode: input.dateMode,
+      flexible_month: input.flexibleMonth,
+      starts_on: input.startsOn,
+      ends_on: input.endsOn,
+    })
+    .eq("id", input.planId)
+    .eq("couple_id", coupleId);
+
+  if (error) throw error;
+
+  const { data: plan } = await supabase
+    .from("plans")
+    .select("slug")
+    .eq("id", input.planId)
+    .single();
+
+  revalidatePath("/plans");
+  if (plan?.slug) revalidatePath(`/plans/${plan.slug}`);
+}
+
+async function findOrCreatePlanForDestination(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  coupleId: string,
+  destination: string,
+  destinationKey: string,
+) {
+  const { data: existing } = await supabase
+    .from("plans")
+    .select("*")
+    .eq("couple_id", coupleId)
+    .eq("destination_key", destinationKey)
+    .neq("slug", "joshua-tree")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) return existing;
+
+  const { uniquePlanSlug } = await import("@/lib/plan-utils");
+  const slug = uniquePlanSlug(destinationKey);
+
+  const { data: created, error } = await supabase
+    .from("plans")
+    .insert({
+      couple_id: coupleId,
+      slug,
+      title: destination,
+      destination,
+      destination_key: destinationKey,
+      status: "building",
+      trip_length_days: 3,
+      date_mode: "flexible_month",
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return created;
+}
+
+export async function ingestLink(
+  sourceUrl: string,
+  options?: {
+    title?: string;
+    planId?: string;
+    destination?: string;
+    destinationKey?: string;
+  },
+) {
+  const { supabase, user, coupleId } = await requireCouple();
+  const { detectLinkDestination, detectSourceType } = await import(
+    "@/lib/link-destination"
+  );
+  const { destinationKeyFromLabel } = await import("@/lib/plan-utils");
+
+  const trimmed = sourceUrl.trim();
+  if (!trimmed) throw new Error("Paste a link first.");
+
+  const sourceType = detectSourceType(trimmed);
+  let destination = options?.destination;
+  let destinationKey = options?.destinationKey;
+  let confidence: "high" | "medium" | "low" = "high";
+  let placeName: string | null = null;
+  let rawMetadata: Record<string, unknown> = {};
+
+  if (!destination || !destinationKey) {
+    const detected = await detectLinkDestination(trimmed, sourceType);
+    destination = detected.destination;
+    destinationKey = detected.destination_key;
+    confidence = detected.confidence;
+    placeName = detected.place_name;
+    rawMetadata = detected.raw_metadata;
+  }
+
+  if (confidence === "low" && !options?.destination) {
+    return {
+      needsDestination: true as const,
+      sourceUrl: trimmed,
+      sourceType,
+    };
+  }
+
+  let planId = options?.planId;
+  let planSlug: string | undefined;
+
+  if (planId) {
+    const { data: plan } = await supabase
+      .from("plans")
+      .select("slug")
+      .eq("id", planId)
+      .eq("couple_id", coupleId)
+      .single();
+    planSlug = plan?.slug;
+  } else {
+    const plan = await findOrCreatePlanForDestination(
+      supabase,
+      coupleId,
+      destination!,
+      destinationKey ?? destinationKeyFromLabel(destination!),
+    );
+    planId = plan.id;
+    planSlug = plan.slug;
+  }
+
+  const meta = rawMetadata as Record<string, unknown>;
+  const title =
+    options?.title ??
+    (typeof meta.title === "string" ? meta.title : null) ??
+    placeName ??
+    trimmed.slice(0, 80);
+
+  const { data: draft, error } = await supabase
+    .from("drafts")
+    .insert({
+      couple_id: coupleId,
+      plan_id: planId,
+      created_by: user.id,
+      source_url: trimmed,
+      source_type: sourceType,
+      title,
+      place_name: placeName,
+      status: "draft",
+      suggested_day: null,
+      sort_order: 0,
+      raw_metadata: rawMetadata,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  revalidatePath("/home");
+  revalidatePath("/plans");
+  if (planSlug) revalidatePath(`/plans/${planSlug}`);
+
+  return {
+    needsDestination: false as const,
+    planSlug,
+    planId,
+    draft,
+  };
+}
+
+export async function smartPlan(planId: string) {
+  const { supabase, user, coupleId } = await requireCouple();
+
+  const { data: couple } = await supabase
+    .from("couples")
+    .select("is_pro")
+    .eq("id", coupleId)
+    .single();
+
+  const isPro =
+    couple?.is_pro === true || process.env.RUFFLES_DEMO_PRO === "true";
+  if (!isPro) {
+    throw new Error("PRO_REQUIRED");
+  }
+
+  const { data: plan } = await supabase
+    .from("plans")
+    .select("*")
+    .eq("id", planId)
+    .eq("couple_id", coupleId)
+    .single();
+
+  if (!plan) throw new Error("Plan not found");
+
+  const { data: drafts } = await supabase
+    .from("drafts")
+    .select("*")
+    .eq("plan_id", planId)
+    .order("created_at");
+
+  const { buildSmartPlan } = await import("@/lib/smart-plan-ai");
+  const result = await buildSmartPlan(plan, drafts ?? []);
+
+  for (const stop of result.stops) {
+    await supabase
+      .from("drafts")
+      .update({
+        suggested_day: stop.day,
+        sort_order: stop.sort_order,
+        status: "scheduled",
+      })
+      .eq("id", stop.draft_id);
+
+    await supabase.from("events").insert({
+      couple_id: coupleId,
+      plan_id: planId,
+      created_by: user.id,
+      scope: "us",
+      title: stop.title,
+      description: stop.description,
+      starts_at: stop.starts_at,
+      ends_at: stop.ends_at,
+      place_name: stop.place_name,
+      category: "activity",
+      legacy_uid: `smart-${stop.draft_id}`,
+      sort_order: stop.sort_order,
+    });
+  }
+
+  for (const [i, gap] of result.gaps.entries()) {
+    await supabase.from("events").insert({
+      couple_id: coupleId,
+      plan_id: planId,
+      created_by: user.id,
+      scope: "us",
+      title: gap.title,
+      description: gap.description,
+      starts_at: gap.starts_at,
+      ends_at: gap.ends_at,
+      category: "activity",
+      legacy_uid: `smart-gap-${planId}-${i}`,
+      sort_order: 100 + i,
+    });
+  }
+
+  await supabase
+    .from("plans")
+    .update({ status: "scheduled" })
+    .eq("id", planId);
+
+  revalidatePath("/plans");
+  revalidatePath(`/plans/${plan.slug}`);
+  revalidatePath("/home");
+
+  return { stops: result.stops.length, gaps: result.gaps.length };
 }
 
 export async function createTodo(title: string) {

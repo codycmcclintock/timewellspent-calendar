@@ -43,7 +43,7 @@ export function HomeTabs({
     <div>
       <Link
         href="/record?mode=weekly"
-        className="mb-6 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#2563eb] to-[#2563eb]/80 py-4 text-sm font-semibold text-white shadow-md"
+        className="mb-6 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-coral to-coral/85 py-4 text-sm font-semibold text-white shadow-md"
       >
         <Mic className="h-5 w-5" />
         Plan your week
@@ -55,7 +55,7 @@ export function HomeTabs({
             key={t.id}
             href={`/home?tab=${t.id}`}
             className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition ${
-              tab === t.id ? "bg-[#2563eb] text-white" : "text-[#6b7280]"
+              tab === t.id ? "bg-coral text-white" : "text-muted"
             }`}
           >
             {t.label}

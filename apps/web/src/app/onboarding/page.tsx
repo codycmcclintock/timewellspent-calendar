@@ -14,7 +14,12 @@ export default async function OnboardingPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/");
+  if (!user) {
+    const next = params.join
+      ? `/onboarding?join=${params.join}`
+      : "/onboarding";
+    redirect(`/?next=${encodeURIComponent(next)}`);
+  }
 
   const { data: membership } = await supabase
     .from("couple_members")
@@ -25,9 +30,20 @@ export default async function OnboardingPage({
   if (membership) redirect("/home");
 
   if (params.join) {
-    await joinCouple(params.join);
-    await importLegacyCalendar();
-    redirect("/home");
+    try {
+      await joinCouple(params.join);
+      try {
+        await importLegacyCalendar();
+      } catch {
+        /* optional */
+      }
+      redirect("/home");
+    } catch (e) {
+      const { formatActionError } = await import("@/lib/format-action-error");
+      redirect(
+        `/onboarding?error=${encodeURIComponent(formatActionError(e))}`,
+      );
+    }
   }
 
   return (
@@ -63,7 +79,7 @@ export default async function OnboardingPage({
       >
         <button
           type="submit"
-          className="w-full rounded-full bg-[#2563eb] py-3.5 text-sm font-semibold text-white shadow-md"
+          className="w-full rounded-full bg-coral py-3.5 text-sm font-semibold text-white shadow-md"
         >
           Create our calendar
         </button>

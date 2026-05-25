@@ -35,7 +35,7 @@ export function TripEventCard({
         className="flex w-full items-start gap-4 p-4 text-left"
       >
         <div className="w-[4.5rem] shrink-0">
-          <p className="text-sm font-bold text-[#b85c38]">
+          <p className="text-sm font-bold text-coral">
             {formatTime(event.starts_at)}
           </p>
           {event.ends_at !== event.starts_at ? (
@@ -84,7 +84,7 @@ export function TripEventCard({
               {tags.map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full bg-[#b85c38]/10 px-2 py-0.5 text-xs font-medium text-[#b85c38]"
+                  className="rounded-full bg-coral/10 px-2 py-0.5 text-xs font-medium text-coral"
                 >
                   {tag}
                 </span>

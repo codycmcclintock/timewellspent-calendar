@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { formatDayHeader } from "@/lib/dates";
@@ -67,7 +68,7 @@ export function TodaySchedule({
         <button
           type="button"
           onClick={() => setSheetOpen(true)}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2563eb] text-white shadow-md"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-coral text-white shadow-md"
         >
           <Plus className="h-5 w-5" />
         </button>
@@ -75,16 +76,22 @@ export function TodaySchedule({
 
       {events.length === 0 ? (
         <div className="rounded-2xl bg-card p-8 text-center ring-1 ring-black/5">
-          <p className="font-medium text-ink">Nothing planned yet</p>
+          <p className="font-medium text-ink">Nothing on the calendar today</p>
           <p className="mt-1 text-sm text-muted">
-            Add something beautiful for today.
+            Your Joshua Tree weekend lives in Plans—or add something for today.
           </p>
+          <Link
+            href="/plans/joshua-tree"
+            className="mt-4 inline-block rounded-full bg-coral px-5 py-2 text-sm font-medium text-white"
+          >
+            View Joshua Tree
+          </Link>
           <button
             type="button"
             onClick={() => setSheetOpen(true)}
-            className="mt-4 rounded-full bg-blue px-5 py-2 text-sm font-medium text-white"
+            className="mt-3 block w-full text-sm font-medium text-coral"
           >
-            Add activity
+            Add activity for today
           </button>
         </div>
       ) : (
