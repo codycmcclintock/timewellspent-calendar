@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
@@ -44,8 +45,10 @@ export function SplashSlide() {
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, [searchParams]);
+
   const x = useMotionValue(0);
-  const opacity = useTransform(x, [0, 200], [1, 0.3]);
+  const thumbOpacity = useTransform(x, [0, 220], [1, 0.85]);
+  const trackWidth = 300;
 
   const supabase = createClient();
 
@@ -77,83 +80,115 @@ export function SplashSlide() {
 
   function onDragEnd() {
     const current = x.get();
-    if (current > 160) {
-      animate(x, 280, { duration: 0.2 }).then(() => setRevealed(true));
+    if (current > trackWidth * 0.55) {
+      animate(x, trackWidth - 56, { duration: 0.22 }).then(() => setRevealed(true));
     } else {
-      animate(x, 0, { type: "spring", stiffness: 400, damping: 30 });
+      animate(x, 0, { type: "spring", stiffness: 420, damping: 32 });
     }
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url(https://images.unsplash.com/photo-1501785881917-7a2b7e9a3f1e?w=1200&q=80)",
-        }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#b85c38]/30 via-black/25 to-black/50" />
+    <div className="flex min-h-screen flex-col bg-[#fafafa]">
+      <div className="flex flex-1 flex-col items-center justify-center px-8 pb-8 pt-16">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="flex flex-col items-center text-center"
+        >
+          <div className="relative h-36 w-36 sm:h-40 sm:w-40">
+            <Image
+              src="/ruffles-logo.png"
+              alt="Ruffles"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
 
-      <div className="relative z-10 flex min-h-screen flex-col px-6 pb-10 pt-14">
-        <p className="font-serif text-2xl font-semibold tracking-tight text-white drop-shadow">
-          Ruffles
-        </p>
-
-        <div className="mt-auto max-w-sm">
-          <h1 className="font-serif text-4xl font-semibold leading-tight text-white drop-shadow">
-            Where plans happen
+          <h1 className="mt-8 font-serif text-2xl font-semibold tracking-tight text-[#1a1a1a]">
+            Ruffles
           </h1>
-          <p className="mt-2 text-lg text-white/90">Adventures made easy</p>
-        </div>
+          <p className="mt-2 max-w-[260px] text-base leading-snug text-[#6b7280]">
+            Where plans happen
+          </p>
+          <p className="mt-1 text-sm text-[#9ca3af]">Adventures made easy</p>
+        </motion.div>
+      </div>
 
-        <div className="mt-10">
-          {authError ? (
-            <div className="mb-4 rounded-2xl border border-red-200/80 bg-red-950/80 px-4 py-3 text-sm text-red-50 backdrop-blur">
-              <p className="font-semibold">Sign-in failed</p>
-              <p className="mt-1 text-red-100/90">{authError}</p>
-              <p className="mt-2 text-xs text-red-100/70">
-                Usually: re-copy Google Client ID + Secret into Supabase →
-                Authentication → Providers → Google, then save.
-              </p>
-            </div>
-          ) : null}
-          {!revealed ? (
-            <div className="relative h-14 overflow-hidden rounded-full bg-white/20 backdrop-blur">
-              <p className="absolute right-6 top-1/2 -translate-y-1/2 text-sm text-white/90">
-                Slide →
+      <div className="w-full max-w-sm shrink-0 px-8 pb-12 pt-2 mx-auto">
+        {authError ? (
+          <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            <p className="font-semibold">Sign-in failed</p>
+            <p className="mt-1">{authError}</p>
+          </div>
+        ) : null}
+
+        {!revealed ? (
+          <div className="flex flex-col items-center gap-3">
+            <p className="text-xs font-medium uppercase tracking-[0.2em] text-[#9ca3af]">
+              Slide to continue
+            </p>
+            <div
+              className="relative h-[3.25rem] w-full max-w-[300px] overflow-hidden rounded-full bg-[#e8e8ed] shadow-inner"
+              style={{ maxWidth: trackWidth }}
+            >
+              <p className="pointer-events-none absolute inset-0 flex items-center justify-end pr-5 text-sm font-medium text-[#9ca3af]">
+                →
               </p>
               <motion.button
                 type="button"
-                style={{ x, opacity }}
+                aria-label="Slide to continue"
+                style={{ x, opacity: thumbOpacity }}
                 drag="x"
-                dragConstraints={{ left: 0, right: 280 }}
-                dragElastic={0}
+                dragConstraints={{ left: 0, right: trackWidth - 56 }}
+                dragElastic={0.05}
+                dragMomentum={false}
                 onDragEnd={onDragEnd}
-                className="absolute left-1 top-1 flex h-12 cursor-grab items-center rounded-full bg-[#2563eb] px-5 text-sm font-semibold text-white shadow-lg active:cursor-grabbing"
+                className="absolute left-1 top-1 flex h-11 w-11 cursor-grab items-center justify-center rounded-full bg-[#e85d4a] shadow-md ring-2 ring-white active:cursor-grabbing"
               >
-                Continue
+                <span className="sr-only">Continue</span>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                >
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
               </motion.button>
             </div>
-          ) : (
-            <div className="space-y-3">
-              <button
-                type="button"
-                onClick={() => signIn("apple")}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-white py-3.5 text-sm font-semibold text-[#1a1a1a] shadow-md"
-              >
-                Sign in with Apple
-              </button>
-              <button
-                type="button"
-                onClick={() => signIn("google")}
-                className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-white/40 bg-white/15 py-3.5 text-sm font-semibold text-white backdrop-blur"
-              >
-                Sign in with Google
-              </button>
-            </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-3"
+          >
+            <p className="mb-1 text-center text-sm text-[#6b7280]">
+              Sign in to start planning together
+            </p>
+            <button
+              type="button"
+              onClick={() => signIn("apple")}
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-[#1a1a1a] py-3.5 text-sm font-semibold text-white"
+            >
+              Sign in with Apple
+            </button>
+            <button
+              type="button"
+              onClick={() => signIn("google")}
+              className="flex w-full items-center justify-center gap-2 rounded-full border border-[#d1d5db] bg-white py-3.5 text-sm font-semibold text-[#1a1a1a] shadow-sm"
+            >
+              Sign in with Google
+            </button>
+          </motion.div>
+        )}
       </div>
     </div>
   );
