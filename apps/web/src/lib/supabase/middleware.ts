@@ -25,11 +25,22 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
+  const path = request.nextUrl.pathname;
+  const authCode = request.nextUrl.searchParams.get("code");
+
+  // Supabase sometimes redirects to Site URL (/) with ?code= instead of /auth/callback
+  if (authCode && (path === "/" || path === "")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/callback";
+    if (!url.searchParams.get("next")) {
+      url.searchParams.set("next", "/onboarding");
+    }
+    return NextResponse.redirect(url);
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const path = request.nextUrl.pathname;
   const isAuthRoute =
     path.startsWith("/auth") ||
     path === "/" ||
@@ -44,7 +55,12 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && (path === "/" || path === "/auth/callback")) {
+  if (user && path === "/") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/home";
+    return NextResponse.redirect(url);
+  }
+  if (user && path === "/auth/callback" && !authCode) {
     const url = request.nextUrl.clone();
     url.pathname = "/home";
     return NextResponse.redirect(url);

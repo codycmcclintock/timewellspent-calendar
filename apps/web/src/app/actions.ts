@@ -12,7 +12,77 @@ async function requireAuth() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  await ensureProfile(supabase, user);
   return { supabase, user };
+}
+
+/** OAuth users may exist in auth.users before public.profiles row exists. */
+async function ensureProfile(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  user: { id: string; email?: string; user_metadata?: Record<string, unknown> },
+) {
+  const { data: existing } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (existing) return;
+
+  const meta = user.user_metadata ?? {};
+  const displayName =
+    (typeof meta.full_name === "string" && meta.full_name) ||
+    (typeof meta.name === "string" && meta.name) ||
+    user.email?.split("@")[0] ||
+    "User";
+
+  const { error: profileError } = await supabase.from("profiles").insert({
+    id: user.id,
+    display_name: displayName,
+    avatar_url:
+      typeof meta.avatar_url === "string" ? meta.avatar_url : null,
+  });
+
+  if (profileError) throw profileError;
+
+  const { error: notifError } = await supabase
+    .from("notification_preferences")
+    .insert({ user_id: user.id, email_on_us_events: true });
+
+  if (notifError && notifError.code !== "23505") throw notifError;
+}
+
+async function ensureProfileWithService(
+  service: Awaited<ReturnType<typeof createServiceClient>>,
+  user: { id: string; email?: string; user_metadata?: Record<string, unknown> },
+) {
+  const { data: existing } = await service
+    .from("profiles")
+    .select("id")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (existing) return;
+
+  const meta = user.user_metadata ?? {};
+  const displayName =
+    (typeof meta.full_name === "string" && meta.full_name) ||
+    (typeof meta.name === "string" && meta.name) ||
+    user.email?.split("@")[0] ||
+    "User";
+
+  const { error: profileError } = await service.from("profiles").insert({
+    id: user.id,
+    display_name: displayName,
+    avatar_url:
+      typeof meta.avatar_url === "string" ? meta.avatar_url : null,
+  });
+  if (profileError) throw profileError;
+
+  const { error: notifError } = await service
+    .from("notification_preferences")
+    .insert({ user_id: user.id, email_on_us_events: true });
+  if (notifError && notifError.code !== "23505") throw notifError;
 }
 
 async function requireCouple() {
@@ -27,9 +97,24 @@ async function requireCouple() {
 }
 
 export async function createCouple(name?: string) {
-  const { supabase, user } = await requireAuth();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
 
-  const { data: couple, error } = await supabase
+  const service = await createServiceClient();
+  await ensureProfileWithService(service, user);
+
+  const { data: existingMember } = await service
+    .from("couple_members")
+    .select("couple_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (existingMember?.couple_id) return existingMember.couple_id;
+
+  const { data: couple, error } = await service
     .from("couples")
     .insert({ name: name ?? "Our plans", created_by: user.id })
     .select()
@@ -37,14 +122,26 @@ export async function createCouple(name?: string) {
 
   if (error) throw error;
 
-  await supabase.from("couple_members").insert({
+  const { error: memberError } = await service.from("couple_members").insert({
     couple_id: couple.id,
     user_id: user.id,
     role: "member",
   });
+  if (memberError) throw memberError;
 
-  const token = randomBytes(24).toString("hex");
-  await supabase.from("ics_feed_tokens").insert({ user_id: user.id, token });
+  const { data: tokenRow } = await service
+    .from("ics_feed_tokens")
+    .select("token")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!tokenRow) {
+    const token = randomBytes(24).toString("hex");
+    const { error: tokenError } = await service
+      .from("ics_feed_tokens")
+      .insert({ user_id: user.id, token });
+    if (tokenError) throw tokenError;
+  }
 
   revalidatePath("/");
   return couple.id;

@@ -7,7 +7,7 @@ import { createCouple, importLegacyCalendar, joinCouple } from "@/app/actions";
 export default async function OnboardingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ join?: string }>;
+  searchParams: Promise<{ join?: string; error?: string }>;
 }) {
   const params = await searchParams;
   const supabase = await createClient();
@@ -35,12 +35,29 @@ export default async function OnboardingPage({
       <h1 className="font-serif text-3xl font-semibold">Welcome to Ruffles</h1>
       <p className="mt-2 text-muted">Set up your shared space.</p>
 
+      {params.error ? (
+        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">
+          {decodeURIComponent(params.error)}
+        </p>
+      ) : null}
+
       <form
         action={async () => {
           "use server";
-          await createCouple();
-          await importLegacyCalendar();
-          redirect("/home");
+          try {
+            await createCouple();
+            try {
+              await importLegacyCalendar();
+            } catch {
+              /* calendar.ics optional — couple is created */
+            }
+            redirect("/home");
+          } catch (e) {
+            const { formatActionError } = await import("@/lib/format-action-error");
+            redirect(
+              `/onboarding?error=${encodeURIComponent(formatActionError(e))}`,
+            );
+          }
         }}
         className="mt-8"
       >

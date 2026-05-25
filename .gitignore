@@ -3,7 +3,10 @@ apps/web/node_modules/
 apps/web/.next/
 apps/web/.env.local
 apps/web/.env*.local
+apps/web/.env.vercel
+apps/web/vercel-import.env
 .env.local
 .DS_Store
 supabase/.temp/
 supabase/.branches/
+.vercel

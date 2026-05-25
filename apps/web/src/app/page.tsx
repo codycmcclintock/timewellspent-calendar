@@ -1,5 +1,10 @@
+import { Suspense } from "react";
 import { SplashSlide } from "@/components/SplashSlide";
 
 export default function SplashPage() {
-  return <SplashSlide />;
+  return (
+    <Suspense fallback={null}>
+      <SplashSlide />
+    </Suspense>
+  );
 }

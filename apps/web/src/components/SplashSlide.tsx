@@ -1,11 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 
+function readAuthError(): string | null {
+  if (typeof window === "undefined") return null;
+  const fromQuery = new URLSearchParams(window.location.search);
+  const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const code =
+    fromQuery.get("error_code") ?? fromHash.get("error_code") ?? fromQuery.get("error");
+  const desc =
+    fromQuery.get("error_description") ?? fromHash.get("error_description");
+  if (!code && !desc) return null;
+  return desc ? decodeURIComponent(desc.replace(/\+/g, " ")) : code;
+}
+
 export function SplashSlide() {
+  const searchParams = useSearchParams();
+  const [authError, setAuthError] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
+
+  useEffect(() => {
+    const code = searchParams.get("code");
+    if (code) {
+      const next = searchParams.get("next") ?? "/onboarding";
+      window.location.replace(
+        `/auth/callback?code=${encodeURIComponent(code)}&next=${encodeURIComponent(next)}`,
+      );
+      return;
+    }
+
+    const err =
+      searchParams.get("error_description")?.replace(/\+/g, " ") ??
+      (searchParams.get("error") === "auth"
+        ? "Sign-in could not be completed. Try again."
+        : null) ??
+      readAuthError();
+    setAuthError(err);
+    if (err && (searchParams.get("error") || searchParams.get("error_code"))) {
+      setRevealed(true);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [searchParams]);
   const x = useMotionValue(0);
   const opacity = useTransform(x, [0, 200], [1, 0.3]);
 
@@ -13,11 +51,27 @@ export function SplashSlide() {
 
   async function signIn(provider: "google" | "apple") {
     const origin = window.location.origin;
+    const redirectTo = `${origin}/auth/callback`;
+
+    if (provider === "google") {
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo,
+          scopes:
+            "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events",
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
+        },
+      });
+      return;
+    }
+
     await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${origin}/auth/callback`,
-      },
+      provider: "apple",
+      options: { redirectTo },
     });
   }
 
@@ -54,6 +108,16 @@ export function SplashSlide() {
         </div>
 
         <div className="mt-10">
+          {authError ? (
+            <div className="mb-4 rounded-2xl border border-red-200/80 bg-red-950/80 px-4 py-3 text-sm text-red-50 backdrop-blur">
+              <p className="font-semibold">Sign-in failed</p>
+              <p className="mt-1 text-red-100/90">{authError}</p>
+              <p className="mt-2 text-xs text-red-100/70">
+                Usually: re-copy Google Client ID + Secret into Supabase →
+                Authentication → Providers → Google, then save.
+              </p>
+            </div>
+          ) : null}
           {!revealed ? (
             <div className="relative h-14 overflow-hidden rounded-full bg-white/20 backdrop-blur">
               <p className="absolute right-6 top-1/2 -translate-y-1/2 text-sm text-white/90">

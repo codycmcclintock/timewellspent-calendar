@@ -12,6 +12,15 @@ export async function GET(request: Request) {
     if (!error) {
       return NextResponse.redirect(`${origin}${next}`);
     }
+    const msg = encodeURIComponent(error.message);
+    return NextResponse.redirect(`${origin}/?error=auth&error_description=${msg}`);
+  }
+
+  const oauthError = searchParams.get("error_description");
+  if (oauthError) {
+    return NextResponse.redirect(
+      `${origin}/?error=server_error&error_description=${encodeURIComponent(oauthError)}`,
+    );
   }
 
   return NextResponse.redirect(`${origin}/?error=auth`);

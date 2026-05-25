@@ -1,0 +1,12 @@
+export function formatActionError(e: unknown): string {
+  if (e instanceof Error) return e.message;
+  if (
+    e &&
+    typeof e === "object" &&
+    "message" in e &&
+    typeof (e as { message: unknown }).message === "string"
+  ) {
+    return (e as { message: string }).message;
+  }
+  return "Something went wrong. Please try again.";
+}
