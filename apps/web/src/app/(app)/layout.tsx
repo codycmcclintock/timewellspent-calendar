@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/BottomNav";
 import { getUserContext } from "@/lib/user-context";
