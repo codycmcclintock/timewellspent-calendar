@@ -1,66 +1,63 @@
-# Time Well Spent — shared calendar
+# Ruffles — couples calendar & planning
 
-This repo hosts `calendar.ics` on **GitHub Pages** so you can **subscribe** and get updates when the file changes on `main`.
+**Where plans happen.** Shared calendar for couples on the web.
 
-**Open the human-friendly link on your phone** (copy URLs from there so nothing gets mangled by Messages):
+- **App:** Next.js in [`apps/web`](apps/web) — deploy to **Vercel** (root directory: `apps/web`)
+- **Database & auth:** **Supabase** (cloud project required for production)
+- **Legacy ICS:** [`calendar.ics`](calendar.ics) — imported on first setup; live feeds are `/api/feed/{token}.ics`
 
-https://codycmcclintock.github.io/timewellspent-calendar/
+## Production setup (Vercel + Supabase)
 
-## Subscribe URLs (same calendar; pick one per device)
+### 1. Supabase (cloud)
 
-**1. jsDelivr mirror (try this on iPhone if GitHub URLs say “insecure”)** — same file, different TLS stack and `Content-Type: text/calendar`:
+1. Create a project at [supabase.com](https://supabase.com).
+2. SQL Editor → run [`supabase/migrations/001_initial.sql`](supabase/migrations/001_initial.sql).
+3. **Authentication → Providers:** enable **Google** and **Apple**.
+4. **Authentication → URL configuration:** add redirect URLs:
+   - `https://YOUR-VERCEL-DOMAIN/auth/callback`
+   - `http://localhost:3000/auth/callback` (for local testing)
+5. Copy **Project URL**, **anon key**, and **service_role** key.
 
-https://cdn.jsdelivr.net/gh/codycmcclintock/timewellspent-calendar@main/calendar.ics
+### 2. Vercel
 
-**2. GitHub Pages**
+1. Import this repo on [vercel.com](https://vercel.com).
+2. Set **Root Directory** to `apps/web`.
+3. Add environment variables:
 
-https://codycmcclintock.github.io/timewellspent-calendar/calendar.ics
+| Variable | Value |
+|----------|--------|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://xxxx.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | service role key |
+| `NEXT_PUBLIC_APP_URL` | `https://YOUR-VERCEL-DOMAIN` |
+| `RESEND_API_KEY` | optional |
+| `RESEND_FROM_EMAIL` | optional |
 
-**3. Raw on GitHub**
+4. Deploy. Sign in with **Apple** or **Google** only (no dev email login in production).
 
-https://raw.githubusercontent.com/codycmcclintock/timewellspent-calendar/main/calendar.ics
+### 3. GitHub
 
-### Apple Calendar
+Repo: [github.com/codycmcclintock/timewellspent-calendar](https://github.com/codycmcclintock/timewellspent-calendar)
 
-macOS: **File → New Calendar Subscription…** → paste an HTTPS URL from above.
+Push `main` → Vercel redeploys if connected.
 
-**iPhone (recommended):** **Calendar** app → **Calendars** (bottom) → **Add Calendar** → **Add Subscription Calendar** → paste the full `https://…calendar.ics` URL → **Find** / **Subscribe**.  
-Apple documents this flow [here](https://support.apple.com/guide/iphone/iph3d1110d4/ios).
+## Local development (optional)
 
-**iPhone (Settings):** **Settings → Calendar → Accounts → Add Calendar → Add Subscribed Calendar**. The first field is labeled **Server** even though you paste a **full URL** — that is expected. **Leave username and password blank.** Keep **SSL on**. If you see **“Cannot connect using SSL”**, do **not** tap **Continue** without SSL (that usually leads to “unable to verify account”). **Cancel**, then try the **jsDelivr** URL instead.
-
-If iPhone still says **“Insecure connection”** even with **`https://`**:
-
-1. **Do not use `webcal://`** — on many iPhones it behaves like insecure HTTP. Use **`https://`** only.
-2. Use the **jsDelivr** URL (section 1). iOS is picky about some GitHub hosts; the CDN URL is often accepted.
-3. In **Safari**, open the `https://` link: you must see a **lock** and text starting with `BEGIN:VCALENDAR`. If Safari warns about certificates, fix **VPN / captive Wi‑Fi / wrong date & time** on the phone — Calendar will fail the same way.
-4. **Nuclear option:** In **Google Calendar** on the web → **Settings → Add calendar → From URL** → paste any HTTPS URL above → add her **Google account** on the iPhone and turn on that calendar. Google’s servers fetch the feed; the iPhone only talks to Google.
-
-The hosted file includes **`VTIMEZONE` for `America/Los_Angeles`**.
-
-### Google Calendar
-
-**Settings → Add calendar → From URL** → paste the HTTPS URL.
-
-## How we edit this
-
-1. Edit `calendar.ics` on `main` (GitHub web editor, or clone and push).
-2. For existing events, **keep the same `UID:`**; bump `DTSTAMP:` when you change an event so clients notice updates.
-3. After push, calendar apps refresh on their own schedule (often not instant).
-
-## Collaborators
-
-Add people with **Write** access under **Settings → Collaborators** so they can edit the file too.
-
-Repo settings (invite UI): https://github.com/codycmcclintock/timewellspent-calendar/settings/access
-
-From a machine with GitHub CLI, you can invite someone by GitHub username (they still need to accept the email/GitHub invite):
+Requires Docker for `supabase start`. See [`scripts/dev.sh`](scripts/dev.sh). Use a **cloud** Supabase project instead if you prefer not to run Docker.
 
 ```bash
-gh api --method PUT "repos/codycmcclintock/timewellspent-calendar/collaborators/PARTNER_USERNAME" -f permission=push
+cd apps/web && cp .env.example .env.local
+# Fill with cloud OR local Supabase keys — do NOT set NEXT_PUBLIC_DEV_LOGIN
+npm install && npm run dev
 ```
 
-## Next steps (manual)
+## App overview
 
-1. **Subscribe** on each phone using one of the URLs above (same URL on both devices).
-2. **Invite your partner** with write access using the settings link or `gh` command (replace `PARTNER_USERNAME`).
+| Area | Description |
+|------|-------------|
+| Home → Today | Today’s schedule with expandable details |
+| Home → This Week | Weekly planner grid |
+| Home → Upcoming | Upcoming event cards |
+| Home → Future | Save link drafts |
+| Plans | Trip boards (e.g. Joshua Tree) |
+| Profile | Personal `.ics` subscribe URL + share |

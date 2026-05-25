@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+:root {
+  --shell: #f5f5f7;
+  --planner: #f7f4ef;
+  --ink: #1a1a1a;
+  --muted: #6b7280;
+  --cta: #2563eb;
+  --blue: #2563eb;
+  --terracotta: #b85c38;
+  --card: #ffffff;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-shell: var(--shell);
+  --color-planner: var(--planner);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-cta: var(--cta);
+  --color-blue: var(--blue);
+  --color-terracotta: var(--terracotta);
+  --color-card: var(--card);
+  --font-sans: var(--font-dm-sans);
+  --font-serif: var(--font-fraunces);
+}
+
+html {
+  color-scheme: light;
+  background-color: var(--shell);
+}
+
+body {
+  background-color: var(--shell);
+  color: var(--ink);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+}
+
+.font-serif {
+  font-family: var(--font-fraunces), Georgia, serif;
+}
+
+/* Explicit utilities so theme tokens always render with color */
+@utility bg-shell {
+  background-color: #f5f5f7;
+}
+@utility bg-planner {
+  background-color: #f7f4ef;
+}
+@utility bg-card {
+  background-color: #ffffff;
+}
+@utility bg-cta {
+  background-color: #2563eb;
+}
+@utility bg-blue {
+  background-color: #2563eb;
+}
+@utility bg-ink {
+  background-color: #1a1a1a;
+}
+@utility bg-terracotta {
+  background-color: #b85c38;
+}
+@utility text-ink {
+  color: #1a1a1a;
+}
+@utility text-muted {
+  color: #6b7280;
+}
+@utility text-blue {
+  color: #2563eb;
+}
+@utility text-terracotta {
+  color: #b85c38;
+}
+@utility border-ink {
+  border-color: #1a1a1a;
+}

@@ -260,4 +260,12 @@ SUMMARY:Work from Happy Coffee Club
 LOCATION:Happy Coffee Club
 DESCRIPTION:Heads-down day. Important meetings stacked — Happy Coffee Club has the quiet vibe I need.\n\nIf you want to work next to me\, I would love that.
 END:VEVENT
+BEGIN:VEVENT
+UID:feed-test-20260516@timewellspent
+DTSTAMP:20260516T034503Z
+DTSTART;TZID=America/Los_Angeles:20260525T120000
+DTEND;TZID=America/Los_Angeles:20260525T123000
+SUMMARY:SHARED CAL TEST (delete from GitHub when done)
+DESCRIPTION:If both of you see this\, the subscription refresh is working. Remove the whole VEVENT block from calendar.ics in the repo when finished.
+END:VEVENT
 END:VCALENDAR
