@@ -1,0 +1,271 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Time Well Spent//Joshua Tree//EN
+CALSCALE:GREGORIAN
+X-WR-CALNAME:Time Well Spent
+X-WR-TIMEZONE:America/Los_Angeles
+BEGIN:VTIMEZONE
+TZID:America/Los_Angeles
+BEGIN:STANDARD
+DTSTART:20071104T020000
+RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU
+TZOFFSETFROM:-0700
+TZOFFSETTO:-0800
+TZNAME:PST
+END:STANDARD
+BEGIN:DAYLIGHT
+DTSTART:20070311T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU
+TZOFFSETFROM:-0800
+TZOFFSETTO:-0700
+TZNAME:PDT
+END:DAYLIGHT
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:jt-0-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260515T180000
+DTEND;TZID=America/Los_Angeles:20260515T180000
+SUMMARY:Pick you up
+DESCRIPTION:Vámonos\, mi amor. The weekend starts now. ✨\n\nIll be outside at 6 — text me when you are coming down.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-1-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260515T200000
+DTEND;TZID=America/Los_Angeles:20260515T203000
+SUMMARY:Reset at the apartment
+DESCRIPTION:Casa. Drop the bags\, breathe.\n\nWe will swing by Erewhon on the way — steak\, buffalo cauli\, two big waters. The desert can wait until tomorrow.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-2-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260515T203000
+DTEND;TZID=America/Los_Angeles:20260515T213000
+SUMMARY:Workout together
+DESCRIPTION:Light\, easy\, fun. We have got horses and hikes ahead — no need to leave it all on the floor tonight\, mi vida.\n\nMobility\, stretch\, dance a little. Whatever feels good.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-3-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260515T213000
+DTEND;TZID=America/Los_Angeles:20260515T223000
+SUMMARY:Steak + buffalo cauli at home
+DESCRIPTION:Cooking for you. No delivery\, no rush. Just us in the kitchen.\n\nSteak\, rice\, the buffalo cauli you love from Erewhon. Te voy a consentir esta noche.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-4-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260515T223000
+DTEND;TZID=America/Los_Angeles:20260515T233000
+SUMMARY:Harry Potter\, just one hour
+DESCRIPTION:Couch\, blanket\, you on me. One hour\, that is the deal — we save the rest for the desert nights.\n\nDescansa\, mi reina. Tomorrow is going to be a beautiful day.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-5-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260516T063000
+DTEND;TZID=America/Los_Angeles:20260516T073000
+SUMMARY:Wake up\, breakfast at home
+DESCRIPTION:Buenos días\, hermosa. ☀️\n\nEggs\, toast\, fruit\, coffee. Slow start. The desert is not going anywhere.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-6-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260516T073000
+DTEND;TZID=America/Los_Angeles:20260516T081500
+SUMMARY:Pack the car\, head out
+DESCRIPTION:Picnic blanket\, sunscreen\, water\, snacks. Light load — we buy fresh in JT.\n\nDownload offline Google Maps before we leave. Listo? Vámonos.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-7-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260516T113000
+DTEND;TZID=America/Los_Angeles:20260516T121500
+SUMMARY:Joshua Tree Farmers Market 🍓
+LOCATION:61651 Twentynine Palms Hwy\, Joshua Tree\, CA 92252
+DESCRIPTION:Our first stop in the desert. Sábado en el mercado\, contigo.\n\nWe are buying:\n• Fresh berries (strawberries\, blueberries\, blackberries)\n• Stone fruit if in season (peaches\, plums)\n• Cold-press juice if a vendor has it\n• Snacks for our picnic blanket later\n\nMarket closes at 1 PM sharp.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-8-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260516T123000
+DTEND;TZID=America/Los_Angeles:20260516T134500
+SUMMARY:Thrifting + wash berries
+LOCATION:Hwy 62\, Joshua Tree\, CA
+DESCRIPTION:Walkable strip — tu turno\, mi amor\, you lead the way.\n\n• JT Trading Post (Ivonne is right here)\n• The End / Hoof and The Horn / Ricochet\n\nWhile we are out\, wash the berries at a public restroom — Frontier Cafe\, JT Coffee Co.\, or the Visitor Center (6554 Park Blvd). Pat dry with paper towels\, back in the bag.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-9-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260516T140000
+DTEND;TZID=America/Los_Angeles:20260516T144500
+SUMMARY:🍓 Berry picnic at Noah Purifoy
+LOCATION:63030 Blair Ln\, Joshua Tree\, CA 92252
+DESCRIPTION:Picnic en el desierto\, mi vida.\n\nPicnic blanket from the car\, berries + fruit + snacks from the market. Sit outside under the sky\, eat with our hands\, no plates\, no fuss.\n\nSnuzzu next to us — softest blanket setup ever.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-10-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260516T144500
+DTEND;TZID=America/Los_Angeles:20260516T154500
+SUMMARY:Noah Purifoy Outdoor Desert Art
+LOCATION:63030 Blair Ln\, Joshua Tree\, CA 92252
+DESCRIPTION:Free\, open daily. 10 acres of upside-down bikes and beautiful weird things.\n\nThe afternoon light is going to love you. Qué linda te ves hoy.\n\nYour fit: cowboy hat\, brown pants\, sunglasses.\nMy fit: white shoes\, white shirt\, green shorts.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-11-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260516T161000
+DTEND;TZID=America/Los_Angeles:20260516T173000
+SUMMARY:Pioneertown wander
+LOCATION:Pioneertown\, CA
+DESCRIPTION:Old west on the main street. Easy walking\, your hand in mine\, the kind of slow pace I miss when life gets fast.\n\nCoffee at Frontier Cafe Pioneertown if we need a boost before sunset.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-12-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260516T181500
+DTEND;TZID=America/Los_Angeles:20260516T195000
+SUMMARY:🌅 Sunset at Transmission
+LOCATION:Joshua Tree\, CA
+DESCRIPTION:This one. 7:40 PM sunset\, but we get there 90 minutes early to find the spot.\n\nGolden hour into blue hour. Just us\, the desert\, and the sky doing the thing.\n\nMi favorita. The shot of the trip.\n\nMy fit: black shirt\, black shorts.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-13-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260516T200000
+DTEND;TZID=America/Los_Angeles:20260516T203000
+SUMMARY:Cheap dinner — your pick
+DESCRIPTION:Tu eliges\, mi reina. Three options\, all good:\n\n• In-N-Out\, Yucca Valley — cheeseburgers\, animal fries (~$20)\n• La Taqueria de Joshua Tree — al pastor\, carne asada (~$25)\n• Crossroads Cafe — if you want something a little healthier\n\nSaving the nice dinner for tomorrow.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-14-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260516T210000
+DTEND;TZID=America/Los_Angeles:20260516T230000
+SUMMARY:Car camp + Harry Potter 🎬
+DESCRIPTION:BLM dispersed camping right outside the park (check iOverlander\, Section 6).\n\nLaptop on the dash\, blankets\, market snacks. You curled into me\, the desert stars above the windshield.\n\nNo notifications. No work. Solo tú y yo. This is the part of the trip I think about when I am tired.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-15-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260517T063000
+DTEND;TZID=America/Los_Angeles:20260517T070000
+SUMMARY:Wake up in the desert
+DESCRIPTION:Buenos días\, mi amor. The horses are waiting.\n\nCoffee already in the thermos. Pack the car — we are not coming back to this spot. The day ahead is going to be one we tell people about.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-16-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260517T073000
+DTEND;TZID=America/Los_Angeles:20260517T093000
+SUMMARY:🐴 Sunrise horseback at Cascade Trails
+LOCATION:Cascade Trails Mustang Sanctuary\, Joshua Tree\, CA
+DESCRIPTION:This is the one I have been thinking about for you\, vaquera.\n\nCascade Trails Mustang Sanctuary\n(760) 910-7220 · @cascadetrails_jt\nmustangsanctuary.com\n\nWe arrive at 7:00. ~2 hour ride through mustang country in the soft morning light.\n\nYour fit: dark jeans\, white linen blouse\, brown belt\, cowboy hat\, boots. Te vas a ver hermosa — I already know.\n\nMine: jeans (no shorts)\, boots\, hat.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-17-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260517T093000
+DTEND;TZID=America/Los_Angeles:20260517T100000
+SUMMARY:Coffee + split a burrito
+LOCATION:Joshua Tree Coffee Co.\, 61738 Twentynine Palms Hwy\, Joshua Tree\, CA
+DESCRIPTION:Best small-batch in town. Pour-over and ONE breakfast burrito to split — light fuel before the hikes\, mi vida.\n\nReservation tonight at 5:30 PM\, do not want to be too full.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-18-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260517T103000
+DTEND;TZID=America/Los_Angeles:20260517T113000
+SUMMARY:Hidden Valley Loop
+LOCATION:Hidden Valley Trailhead\, Joshua Tree NP
+DESCRIPTION:1 mile loop\, easy\, shaded between giant boulders. Tranquila — we start with the gentle one while it is still cool.\n\nClassic JT terrain. The kind of place that makes you forget what day it is.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-19-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260517T113500
+DTEND;TZID=America/Los_Angeles:20260517T120000
+SUMMARY:Hall of Horrors
+LOCATION:Hall of Horrors\, Joshua Tree NP
+DESCRIPTION:5 minutes down the road. We squeeze through the slot in the rocks — sounds scary\, looks incredible. Quick stop\, 20 min tops.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-20-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260517T121500
+DTEND;TZID=America/Los_Angeles:20260517T131500
+SUMMARY:Keys View
+LOCATION:Keys View\, Joshua Tree NP
+DESCRIPTION:Up high. On clear days you can see all the way to Mexico — the Salton Sea\, the Coachella Valley laid out below us.\n\nSnack break with the market fruit at the top. The wind is going to mess up your hair and you are still going to look beautiful.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-21-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260517T140000
+DTEND;TZID=America/Los_Angeles:20260517T150000
+SUMMARY:Heart Rock + Arch Rock
+LOCATION:Arch Rock Trailhead\, Joshua Tree NP
+DESCRIPTION:Same trailhead\, 1.4 mile loop. Two rocks\, two photos\, one trail.\n\nHeart Rock is for us. Una foto contigo ahí — that one is going on the wall.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-22-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260517T151500
+DTEND;TZID=America/Los_Angeles:20260517T154500
+SUMMARY:Skull Rock
+LOCATION:Skull Rock\, Joshua Tree NP
+DESCRIPTION:Right off the road. Quick photo\, then we are officially done hiking. Lo logramos.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-23-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260517T173000
+DTEND;TZID=America/Los_Angeles:20260517T190000
+SUMMARY:🌟 Kitchen in the Desert
+LOCATION:6427 Mesquite Ave\, Twentynine Palms\, CA 92277
+DESCRIPTION:Our nice dinner. The one we earned today.\n\nCaribbean / New American\, sharing plates\, outdoor seating under the desert sky. A glass of wine\, your hand in mine across the table.\n\nReservation confirmed under my name\, 5:30 PM. ✓\n\nGracias por este día contigo\, mi amor.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-24-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260517T190000
+DTEND;TZID=America/Los_Angeles:20260517T220000
+SUMMARY:Drive to Laguna + car camp
+DESCRIPTION:3 hours. The last of Harry Potter on audio for the road. You will probably fall asleep on my shoulder somewhere past Riverside\, and that is okay.\n\nFree overnight spot near Treasure Island Beach or Crystal Cove. Wake up to the ocean tomorrow.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-25-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260518T070000
+DTEND;TZID=America/Los_Angeles:20260518T080000
+SUMMARY:Wake up in Laguna
+DESCRIPTION:Beach walk together — 20 min\, salt air\, slow. The reset before the week starts.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-26-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260518T080000
+DTEND;TZID=America/Los_Angeles:20260518T100000
+SUMMARY:Gym + shower (with you)
+DESCRIPTION:Free trial day at Equinox Newport Beach\, Crunch Laguna Niguel\, or Anytime — I will call when we wake up.\n\nWorkout\, real shower\, finally. Juntos.
+END:VEVENT
+BEGIN:VEVENT
+UID:jt-27-20260516T020606Z@timewellspent
+DTSTAMP:20260516T020606Z
+DTSTART;TZID=America/Los_Angeles:20260518T103000
+DTEND;TZID=America/Los_Angeles:20260518T170000
+SUMMARY:Work from Happy Coffee Club
+LOCATION:Happy Coffee Club
+DESCRIPTION:Heads-down day. Important meetings stacked — Happy Coffee Club has the quiet vibe I need.\n\nIf you want to work next to me\, I would love that.
+END:VEVENT
+BEGIN:VEVENT
+UID:feed-test-20260516@timewellspent
+DTSTAMP:20260516T034503Z
+DTSTART;TZID=America/Los_Angeles:20260525T120000
+DTEND;TZID=America/Los_Angeles:20260525T123000
+SUMMARY:SHARED CAL TEST (delete from GitHub when done)
+DESCRIPTION:If both of you see this\, the subscription refresh is working. Remove the whole VEVENT block from calendar.ics in the repo when finished.
+END:VEVENT
+END:VCALENDAR

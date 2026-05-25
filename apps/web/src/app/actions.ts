@@ -2,9 +2,113 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
-import { parseCalendarFile, defaultCalendarPath } from "@/lib/ics-import";
+import {
+  parseCalendarFile,
+  defaultCalendarPath,
+  fallbackCalendarPath,
+} from "@/lib/ics-import";
+import { parseTripFromNaturalLanguage } from "@/lib/trip-ai";
+import type { TripAiResponse } from "@/lib/trip-schema";
+import { inferEventCategory } from "@/lib/infer-event-category";
+import { buildVoiceParseContext } from "@/lib/voice-events-context";
+import type { VoiceParseMode } from "@/lib/voice-session-prompts";
+import { parseVoiceEvents } from "@/lib/voice-events-ai";
+import type { ProposedEvent, VoiceEventParsed } from "@/lib/voice-events-schema";
 import { randomBytes } from "crypto";
 import type { EventScope } from "@/lib/types";
+
+function toProposedEvents(events: VoiceEventParsed[]): ProposedEvent[] {
+  return events.map((e, i) => {
+    const loc = e.location ?? null;
+    const category = inferEventCategory(e.title, e.description);
+    return {
+      ...e,
+      clientId: `proposed-${i}-${e.starts_at}`,
+      place_name: loc,
+      address: loc,
+      category,
+      scope: "us" as const,
+    };
+  });
+}
+
+export async function parseVoiceTranscript(
+  transcript: string,
+  mode: VoiceParseMode,
+) {
+  await requireAuth();
+  const ctx = await buildVoiceParseContext(mode);
+  const events = await parseVoiceEvents(transcript, ctx);
+  return toProposedEvents(events);
+}
+
+export async function resolvePlanIdBySlug(slug: string) {
+  const { supabase, coupleId } = await requireCouple();
+  const { data } = await supabase
+    .from("plans")
+    .select("id")
+    .eq("couple_id", coupleId)
+    .eq("slug", slug)
+    .maybeSingle();
+  return data?.id ?? null;
+}
+
+export async function confirmProposedEvents(
+  events: ProposedEvent[],
+  options?: { planId?: string | null; planSlug?: string },
+) {
+  const { supabase, user, coupleId } = await requireCouple();
+
+  let planId = options?.planId ?? null;
+  if (!planId && options?.planSlug) {
+    const { data: plan } = await supabase
+      .from("plans")
+      .select("id")
+      .eq("couple_id", coupleId)
+      .eq("slug", options.planSlug)
+      .maybeSingle();
+    planId = plan?.id ?? null;
+  }
+
+  let inserted = 0;
+  for (const [i, e] of events.entries()) {
+    const { error } = await supabase.from("events").insert({
+      couple_id: coupleId,
+      plan_id: planId,
+      created_by: user.id,
+      scope: e.scope ?? "us",
+      title: e.title,
+      description: e.description ?? null,
+      starts_at: e.starts_at,
+      ends_at: e.ends_at,
+      place_name: e.place_name ?? e.location ?? null,
+      address: e.address ?? e.location ?? null,
+      category: e.category ?? inferEventCategory(e.title, e.description),
+      confidence: e.confidence,
+      needs_confirmation: e.needs_confirmation ?? [],
+      legacy_uid: `voice-${Date.now()}-${i}`,
+      sort_order: i,
+    });
+    if (!error) inserted++;
+  }
+
+  if (inserted > 0 && events.some((e) => (e.scope ?? "us") === "us")) {
+    await notifyPartnerEmail(
+      supabase,
+      coupleId,
+      user.id,
+      events[0]?.title ?? "New plans",
+    );
+  }
+
+  revalidatePath("/home");
+  revalidatePath("/plans");
+  revalidatePath("/profile");
+  if (options?.planSlug) {
+    revalidatePath(`/plans/${options.planSlug}`);
+  }
+  return { inserted };
+}
 
 async function requireAuth() {
   const supabase = await createClient();
@@ -187,10 +291,24 @@ export async function joinCouple(inviteToken: string) {
   return couple.id;
 }
 
+async function readBundledCalendar() {
+  const { access } = await import("fs/promises");
+  for (const path of [defaultCalendarPath(), fallbackCalendarPath()]) {
+    try {
+      await access(path);
+      return parseCalendarFile(path);
+    } catch {
+      continue;
+    }
+  }
+  throw new Error("calendar.ics not found");
+}
+
 export async function importLegacyCalendar(filePath?: string) {
   const { supabase, user, coupleId } = await requireCouple();
-  const path = filePath ?? defaultCalendarPath();
-  const parsed = await parseCalendarFile(path);
+  const parsed = filePath
+    ? await parseCalendarFile(filePath)
+    : await readBundledCalendar();
 
   let planId: string | null = null;
   const { data: existingPlan } = await supabase
@@ -202,6 +320,24 @@ export async function importLegacyCalendar(filePath?: string) {
 
   if (existingPlan) {
     planId = existingPlan.id;
+    await supabase
+      .from("plans")
+      .update({
+        title: "Joshua Tree",
+        description:
+          "Desert weekend — horses, hikes, farmers market, and dinners under the stars.",
+        starts_on: "2026-05-15",
+        ends_on: "2026-05-18",
+        cover_image_url:
+          "https://images.unsplash.com/photo-1501785881917-7a2b7e9a3f1e?w=1200&q=80",
+        day_themes: {
+          "2026-05-15": { title: "Slow LA night", subtitle: "Relax, fuel up, sleep early." },
+          "2026-05-16": { title: "Desert arrival", subtitle: "Market, camp, stargaze." },
+          "2026-05-17": { title: "Sunrise horseback → hikes → dinner", subtitle: "The big day." },
+          "2026-05-18": { title: "Laguna reset", subtitle: "Ocean, gym, work day." },
+        },
+      })
+      .eq("id", existingPlan.id);
   } else {
     const { data: plan } = await supabase
       .from("plans")
@@ -209,9 +345,18 @@ export async function importLegacyCalendar(filePath?: string) {
         couple_id: coupleId,
         slug: "joshua-tree",
         title: "Joshua Tree",
-        description: "Imported adventure plan",
+        description:
+          "Desert weekend — horses, hikes, farmers market, and dinners under the stars.",
+        starts_on: "2026-05-15",
+        ends_on: "2026-05-18",
         cover_image_url:
-          "https://images.unsplash.com/photo-1501785881917-7a2b7e9a3f1e?w=800&q=80",
+          "https://images.unsplash.com/photo-1501785881917-7a2b7e9a3f1e?w=1200&q=80",
+        day_themes: {
+          "2026-05-15": { title: "Slow LA night", subtitle: "Relax, fuel up, sleep early." },
+          "2026-05-16": { title: "Desert arrival", subtitle: "Market, camp, stargaze." },
+          "2026-05-17": { title: "Sunrise horseback → hikes → dinner", subtitle: "The big day." },
+          "2026-05-18": { title: "Laguna reset", subtitle: "Ocean, gym, work day." },
+        },
       })
       .select()
       .single();
@@ -220,6 +365,8 @@ export async function importLegacyCalendar(filePath?: string) {
 
   let inserted = 0;
   for (const e of parsed) {
+    if (/SHARED CAL TEST/i.test(e.title)) continue;
+
     const { data: existing } = await supabase
       .from("events")
       .select("id")
@@ -240,6 +387,10 @@ export async function importLegacyCalendar(filePath?: string) {
       ends_at: e.ends_at,
       place_name: e.place_name,
       address: e.address,
+      category: e.category,
+      hours_label: e.hours_label,
+      notes: e.notes,
+      bring_items: e.bring_items?.length ? e.bring_items : [],
       legacy_uid: e.legacy_uid,
     });
     inserted++;
@@ -247,7 +398,94 @@ export async function importLegacyCalendar(filePath?: string) {
 
   revalidatePath("/home");
   revalidatePath("/plans");
+  revalidatePath("/plans/joshua-tree");
   return { inserted, total: parsed.length };
+}
+
+export async function importJoshuaTreeCalendar() {
+  return importLegacyCalendar();
+}
+
+async function upsertJoshuaTreePlan(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  coupleId: string,
+  plan: TripAiResponse["plan"],
+) {
+  const slug = "joshua-tree";
+  const payload = {
+    couple_id: coupleId,
+    slug,
+    title: plan.title,
+    description: plan.description ?? null,
+    starts_on: plan.starts_on ?? null,
+    ends_on: plan.ends_on ?? null,
+    cover_image_url:
+      plan.cover_image_url ??
+      "https://images.unsplash.com/photo-1501785881917-7a2b7e9a3f1e?w=1200&q=80",
+  };
+
+  const { data: existing } = await supabase
+    .from("plans")
+    .select("id")
+    .eq("couple_id", coupleId)
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase.from("plans").update(payload).eq("id", existing.id);
+    return existing.id;
+  }
+
+  const { data: created, error } = await supabase
+    .from("plans")
+    .insert(payload)
+    .select("id")
+    .single();
+  if (error) throw error;
+  return created.id;
+}
+
+export async function populateTripFromVoice(
+  transcript: string,
+  replaceExisting = true,
+) {
+  const { supabase, user, coupleId } = await requireCouple();
+  const trip = await parseTripFromNaturalLanguage(transcript);
+  const planId = await upsertJoshuaTreePlan(supabase, coupleId, trip.plan);
+
+  if (replaceExisting) {
+    await supabase.from("events").delete().eq("plan_id", planId);
+  }
+
+  let inserted = 0;
+  for (const [i, e] of trip.events.entries()) {
+    const legacy_uid = `ai-${planId}-${i}-${e.starts_at}`;
+    const { error } = await supabase.from("events").insert({
+      couple_id: coupleId,
+      plan_id: planId,
+      created_by: user.id,
+      scope: e.scope ?? "us",
+      title: e.title,
+      description: e.description ?? null,
+      starts_at: e.starts_at,
+      ends_at: e.ends_at,
+      place_name: e.place_name ?? null,
+      address: e.address ?? e.place_name ?? null,
+      category: e.category ?? "activity",
+      hours_label: e.hours_label ?? null,
+      notes: e.notes ?? null,
+      cost_is_free: e.cost_is_free ?? false,
+      cost_cents: e.cost_cents ?? null,
+      legacy_uid,
+      sort_order: i,
+    });
+    if (!error) inserted++;
+  }
+
+  revalidatePath("/home");
+  revalidatePath("/plans");
+  revalidatePath("/plans/joshua-tree");
+  return { inserted, total: trip.events.length, planId };
 }
 
 export type EventInput = {

@@ -11,7 +11,10 @@
 ### 1. Supabase (cloud)
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. SQL Editor → run [`supabase/migrations/001_initial.sql`](supabase/migrations/001_initial.sql).
+2. SQL Editor → run migrations in order:  
+   [`001_initial.sql`](supabase/migrations/001_initial.sql),  
+   [`002_profiles_rls.sql`](supabase/migrations/002_profiles_rls.sql),  
+   [`003_event_ai_meta.sql`](supabase/migrations/003_event_ai_meta.sql).
 3. **Authentication → Providers:** enable **Google** and **Apple**.
 4. **Authentication → URL configuration:** add redirect URLs:
    - `https://YOUR-VERCEL-DOMAIN/auth/callback`
@@ -32,6 +35,8 @@
 | `NEXT_PUBLIC_APP_URL` | `https://YOUR-VERCEL-DOMAIN` |
 | `RESEND_API_KEY` | optional |
 | `RESEND_FROM_EMAIL` | optional |
+| `ANTHROPIC_API_KEY` | voice planning (recommended) |
+| `OPENAI_API_KEY` | voice planning (alternative) |
 
 4. Deploy. Sign in with **Apple** or **Google** only (no dev email login in production).
 
@@ -62,6 +67,20 @@ Sign-in can request **Google Calendar** access (read + manage events) in additio
 
 After deploy, “Sign in with Google” should list calendar permissions on the consent screen. Sensitive scopes may require Google **verification** before public launch.
 
+### V1 voice loop (core)
+
+1. **Home → Plan your week** or **Plans → Joshua Tree → Talk through the trip** opens `/record`.
+2. Tap the red record button (tap to start / stop). Live transcript uses browser speech (Chrome/Safari); type if needed.
+3. **Pull out the moments** sends the transcript to Claude (Anthropic) and shows proposed event cards.
+4. Edit or remove cards, then **Add all** — events save to Supabase and appear on the partner `.ics` feed.
+5. Sunday push notifications are **not** implemented yet (web-only entry points for now).
+
+### Joshua Tree trip UI
+
+1. Open **Plans → Joshua Tree** (or `/plans/joshua-tree`).
+2. **Import full Joshua Tree calendar** loads `public/calendar.ics` (~27 events) with day themes and rich descriptions.
+3. Use the horizontal day picker, expand cards, and **Add to Google Calendar** links per event.
+
 ### 3. GitHub
 
 Repo: [github.com/codycmcclintock/timewellspent-calendar](https://github.com/codycmcclintock/timewellspent-calendar)
@@ -82,9 +101,10 @@ npm install && npm run dev
 
 | Area | Description |
 |------|-------------|
+| **Record** (`/record`) | Voice → AI → confirm events |
 | Home → Today | Today’s schedule with expandable details |
 | Home → This Week | Weekly planner grid |
 | Home → Upcoming | Upcoming event cards |
 | Home → Future | Save link drafts |
-| Plans | Trip boards (e.g. Joshua Tree) |
+| Plans | Trip boards — voice/AI or one-tap Joshua Tree import |
 | Profile | Personal `.ics` subscribe URL + share |

@@ -42,8 +42,16 @@ export function EventSheet({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-card p-6 shadow-xl">
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 px-4 pt-4 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))]"
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+    >
+      <div
+        className="max-h-[min(85vh,32rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-card p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h3 className="font-serif text-xl font-semibold">Add to calendar</h3>
         <div className="mt-4 space-y-3">
           <input

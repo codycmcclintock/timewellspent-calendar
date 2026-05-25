@@ -1,7 +1,8 @@
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
-import { getUserContext } from "@/lib/user-context";
-import { ScheduleActivityCard } from "@/components/ScheduleActivityCard";
-import { notFound, redirect } from "next/navigation";
+import { getUserContext, ensureIcsToken } from "@/lib/user-context";
+import { TripItineraryView } from "@/components/TripItineraryView";
+import { redirect } from "next/navigation";
 import type { CalendarEvent, Plan } from "@/lib/types";
 
 export default async function PlanDetailPage({
@@ -14,14 +15,39 @@ export default async function PlanDetailPage({
   if (!ctx) redirect("/onboarding");
 
   const supabase = await createClient();
-  const { data: plan } = await supabase
+  let { data: plan } = await supabase
     .from("plans")
     .select("*")
     .eq("couple_id", ctx.coupleId)
     .eq("slug", slug)
-    .single();
+    .maybeSingle();
 
-  if (!plan) notFound();
+  if (!plan && slug === "joshua-tree") {
+    const { data: created } = await supabase
+      .from("plans")
+      .insert({
+        couple_id: ctx.coupleId,
+        slug: "joshua-tree",
+        title: "Joshua Tree",
+        description:
+          "Desert weekend — horses, hikes, farmers market, and dinners under the stars.",
+        starts_on: "2026-05-15",
+        ends_on: "2026-05-18",
+        cover_image_url:
+          "https://images.unsplash.com/photo-1501785881917-7a2b7e9a3f1e?w=1200&q=80",
+        day_themes: {
+          "2026-05-15": { title: "Slow LA night", subtitle: "Relax, fuel up, sleep early." },
+          "2026-05-16": { title: "Desert arrival", subtitle: "Market, camp, stargaze." },
+          "2026-05-17": { title: "Sunrise horseback → hikes → dinner", subtitle: "The big day." },
+          "2026-05-18": { title: "Laguna reset", subtitle: "Ocean, gym, work day." },
+        },
+      })
+      .select()
+      .single();
+    plan = created;
+  }
+
+  if (!plan) redirect("/plans");
 
   const { data: events } = await supabase
     .from("events")
@@ -29,53 +55,19 @@ export default async function PlanDetailPage({
     .eq("plan_id", plan.id)
     .order("starts_at");
 
-  const p = plan as Plan;
+  const token = await ensureIcsToken(ctx.userId);
+  const base =
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ??
+    "http://localhost:3000";
+  const feedUrl = `${base}/api/feed/${token}.ics`;
 
   return (
-    <div>
-      <div className="relative -mx-4 mb-6 h-52 overflow-hidden">
-        {p.cover_image_url && (
-          <img
-            src={p.cover_image_url}
-            alt=""
-            className="h-full w-full object-cover"
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-        <div className="absolute bottom-4 left-4 right-4">
-          <h1 className="font-serif text-3xl font-semibold text-white">
-            {p.title}
-          </h1>
-        </div>
-      </div>
-
-      <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-          Schedule overview
-        </h2>
-        <p className="mt-2 text-sm text-ink">
-          {p.description ?? "Your shared adventure."}
-        </p>
-      </section>
-
-      <div className="mt-6">
-        <h2 className="mb-3 font-semibold text-ink">On the calendar</h2>
-        {(events as CalendarEvent[] | null)?.length ? (
-          <div className="space-y-3">
-            {(events as CalendarEvent[]).map((e) => (
-              <ScheduleActivityCard
-                key={e.id}
-                event={e}
-                userId={ctx.userId}
-              />
-            ))}
-          </div>
-        ) : (
-          <p className="rounded-2xl bg-card p-6 text-center text-sm text-muted ring-1 ring-black/5">
-            Nothing scheduled for this plan yet — add from Today or This Week.
-          </p>
-        )}
-      </div>
-    </div>
+    <Suspense fallback={null}>
+      <TripItineraryView
+        plan={plan as Plan}
+        events={(events ?? []) as CalendarEvent[]}
+        feedUrl={feedUrl}
+      />
+    </Suspense>
   );
 }

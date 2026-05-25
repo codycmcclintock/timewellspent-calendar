@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Mic } from "lucide-react";
 import { weekStartISO, formatWeekLabel, prevWeek, nextWeek } from "@/lib/dates";
 import type { CalendarEvent, Draft } from "@/lib/types";
 import { TodaySchedule } from "./TodaySchedule";
@@ -41,6 +41,14 @@ export function HomeTabs({
 
   return (
     <div>
+      <Link
+        href="/record?mode=weekly"
+        className="mb-6 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#2563eb] to-[#2563eb]/80 py-4 text-sm font-semibold text-white shadow-md"
+      >
+        <Mic className="h-5 w-5" />
+        Plan your week
+      </Link>
+
       <div className="mb-6 flex gap-1 overflow-x-auto rounded-full bg-card p-1 ring-1 ring-black/5">
         {tabs.map((t) => (
           <Link

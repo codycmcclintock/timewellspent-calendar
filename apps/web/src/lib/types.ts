@@ -20,6 +20,11 @@ export interface Couple {
   invite_token: string;
 }
 
+export interface PlanDayTheme {
+  title: string;
+  subtitle: string;
+}
+
 export interface Plan {
   id: string;
   couple_id: string;
@@ -29,6 +34,7 @@ export interface Plan {
   cover_image_url: string | null;
   starts_on: string | null;
   ends_on: string | null;
+  day_themes?: Record<string, PlanDayTheme> | null;
 }
 
 export interface CalendarEvent {
@@ -58,6 +64,8 @@ export interface CalendarEvent {
   completed_at: string | null;
   sort_order: number | null;
   legacy_uid: string | null;
+  confidence: string | null;
+  needs_confirmation: string[] | null;
   created_at: string;
   updated_at: string;
 }
