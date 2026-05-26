@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { PartnerInviteBanner } from "@/components/PartnerInviteBannerClient";
 
 export function PlanWhoPicker({
@@ -9,19 +8,26 @@ export function PlanWhoPicker({
   partnerName,
   onJustMe,
   onContinue,
+  embedded = false,
 }: {
   inviteUrl: string | null;
   hasPartner: boolean;
   partnerName: string | null;
   onJustMe: () => void;
   onContinue: () => void;
+  /** When true, parent (NewPlanWizard) already shows the step title. */
+  embedded?: boolean;
 }) {
-  const [email, setEmail] = useState("");
-
   return (
     <div className="space-y-4">
-      <p className="font-serif text-xl font-semibold text-ink">Who&apos;s coming?</p>
-      <p className="text-sm text-muted">We&apos;ll keep them in the loop.</p>
+      {!embedded ? (
+        <>
+          <p className="font-serif text-xl font-semibold text-ink">
+            Who&apos;s coming?
+          </p>
+          <p className="text-sm text-muted">We&apos;ll keep them in the loop.</p>
+        </>
+      ) : null}
 
       {hasPartner && partnerName ? (
         <div className="rounded-2xl bg-primary-50 px-4 py-3 ring-1 ring-primary-500/15">
@@ -30,32 +36,26 @@ export function PlanWhoPicker({
         </div>
       ) : inviteUrl ? (
         <PartnerInviteBanner inviteUrl={inviteUrl} variant="card" />
+      ) : (
+        <p className="rounded-2xl bg-card px-4 py-3 text-sm text-muted ring-1 ring-black/5">
+          Invite link unavailable — try again from Profile.
+        </p>
+      )}
+
+      {!hasPartner && inviteUrl ? (
+        <p className="text-center text-xs text-muted">
+          Copy the link above and send it to your partner. You can create the trip
+          now — they&apos;ll join the same calendar when they sign up.
+        </p>
       ) : null}
 
-      {!hasPartner ? (
-        <div className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-          <p className="text-sm font-medium text-ink">Invite someone new</p>
-          <input
-            type="email"
-            placeholder="Email (coming soon)"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-2 w-full rounded-xl border border-black/10 px-3 py-2 text-sm"
-            disabled
-          />
-          <p className="mt-2 text-xs text-muted">
-            Share your invite link above for now — they&apos;ll join your couple.
-          </p>
-        </div>
-      ) : null}
-
-      <div className="flex flex-col gap-2 pt-4">
+      <div className="flex flex-col gap-2 pt-2">
         <button
           type="button"
           onClick={onContinue}
           className="w-full rounded-full bg-primary-500 py-3.5 text-sm font-semibold text-white"
         >
-          {hasPartner ? "Create trip" : "Create trip"}
+          Create trip
         </button>
         <button
           type="button"

@@ -11,6 +11,8 @@ import {
 } from "@/components/plans/PlanWhenPicker";
 import { PlanWhoPicker } from "@/components/plans/PlanWhoPicker";
 import { createPlan } from "@/app/actions";
+import { formatActionError } from "@/lib/format-action-error";
+import { addMonths, format } from "date-fns";
 
 type Step = "where" | "when" | "who";
 
@@ -38,20 +40,26 @@ export function NewPlanWizard({
 
   function save() {
     if (!where) return;
+    const flexibleMonth =
+      when.flexibleMonth ??
+      (when.dateMode === "flexible_month"
+        ? format(addMonths(new Date(), 1), "yyyy-MM")
+        : undefined);
+
     startTransition(async () => {
       try {
         const plan = await createPlan({
           destination: where.label,
           destinationKey: where.key,
           dateMode: when.dateMode,
-          flexibleMonth: when.flexibleMonth,
+          flexibleMonth,
           startsOn: when.startsOn,
           endsOn: when.endsOn,
           tripLengthDays: when.tripLengthDays,
         });
-        router.push(`/plans/${plan.slug}?tab=itinerary`);
+        router.push(`/plans/${plan.slug}`);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Could not create plan");
+        setError(formatActionError(e));
       }
     });
   }
@@ -166,6 +174,7 @@ export function NewPlanWizard({
             inviteUrl={inviteUrl}
             hasPartner={hasPartner}
             partnerName={partnerName}
+            embedded
             onJustMe={save}
             onContinue={save}
           />

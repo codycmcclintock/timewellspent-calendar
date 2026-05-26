@@ -581,6 +581,8 @@ export async function createPlan(input: CreatePlanInput) {
   const { uniquePlanSlug } = await import("@/lib/plan-utils");
 
   const slug = uniquePlanSlug(input.destinationKey);
+  // destination_key is unique per couple in DB — use slug so repeat trips to the same city work
+  const destinationKey = slug;
 
   const { data, error } = await supabase
     .from("plans")
@@ -589,7 +591,7 @@ export async function createPlan(input: CreatePlanInput) {
       slug,
       title: input.title ?? input.destination,
       destination: input.destination,
-      destination_key: input.destinationKey,
+      destination_key: destinationKey,
       status: "building",
       date_mode: input.dateMode,
       flexible_month: input.flexibleMonth ?? null,
