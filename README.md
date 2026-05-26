@@ -88,12 +88,26 @@ After deploy, “Sign in with Google” should list calendar permissions on the 
 
 Share **Profile → Bring her into Ruffles** or the home invite banner. Link format: `/join/{token}` (preserved through sign-in). Run migration `004_profiles_couple_read.sql` so partner names show in the header.
 
-### Plans hub (links → city plans)
+### MVP pricing (one paywall)
 
-1. **Plans** — paste an Instagram/TikTok URL; Ruffles detects the city and creates/opens that plan.
-2. Saved links go to an **unsorted** list on the plan (free).
-3. **Smart Plan (pro)** — AI schedules stops and gap ideas (`RUFFLES_DEMO_PRO=true` in env for local demo).
-4. **Create plan** — `/plans/new` for manual Where? / When? setup.
+| | Free | Pro ($39/yr or $4.99/mo) |
+|---|------|--------------------------|
+| Trips, people, voice, AI days, matches | ✓ | ✓ |
+| Saved reels (inbox, unassigned) | 25/month | Unlimited |
+
+Set `RUFFLES_DEMO_PRO=true` locally to test Pro. Checkout is not wired yet — upgrade sheet is informational.
+
+### Plans hub (save → match → plan)
+
+1. **Profile / Plans / Home → Future** — paste IG/TikTok; saves go to your **inbox** (tagged by destination). Trip pages paste directly onto that trip (does not count toward the 25).
+2. **💫 Match** — when you and your partner save the same link, it surfaces on Plans.
+3. **Smart Plan** and **Plan this day from our saves** — free; need `ANTHROPIC_API_KEY`.
+4. Disable link UI with `RUFFLES_LINK_INGEST=false`.
+5. Run migration **`006_ruffles_item_types.sql`** for draft matching and richer events.
+
+**Screenshots:** run `npm run build && npm start` (not `npm run dev`) to hide the Next.js dev overlay.
+
+6. **Create plan** — `/plans/new` four-step wizard (Where / When / Who).
 
 **Quick links:** [Production plans](https://timewellspent-calendar.vercel.app/plans) · [Localhost plans](http://localhost:3000/plans)
 

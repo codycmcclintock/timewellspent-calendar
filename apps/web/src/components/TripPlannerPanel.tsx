@@ -8,7 +8,7 @@ import {
 } from "@/app/actions";
 import { formatActionError } from "@/lib/format-action-error";
 
-const PLACEHOLDER = `Example: Friday pick her up at 6, dinner at home, Saturday Joshua Tree — farmers market, horse sanctuary, Hidden Valley hike, nice dinner at Kitchen in the Desert…`;
+const PLACEHOLDER = `Example: Friday pick them up at 6, dinner at home, Saturday Joshua Tree — farmers market, horse sanctuary, Hidden Valley hike, nice dinner at Kitchen in the Desert…`;
 
 export function TripPlannerPanel({ hasEvents }: { hasEvents: boolean }) {
   const [text, setText] = useState("");
@@ -97,7 +97,7 @@ export function TripPlannerPanel({ hasEvents }: { hasEvents: boolean }) {
   }
 
   return (
-    <section className="rounded-2xl bg-gradient-to-br from-coral/8 via-card to-terracotta/10 p-5 ring-1 ring-black/5">
+    <section className="rounded-2xl bg-gradient-to-br from-primary-500/8 via-card to-primary-700/10 p-5 ring-1 ring-black/5">
       <div className="flex items-start gap-3">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-coral text-white">
           <Sparkles className="h-5 w-5" />

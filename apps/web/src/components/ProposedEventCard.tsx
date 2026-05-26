@@ -16,10 +16,14 @@ export function ProposedEventCard({
   event,
   onUpdate,
   onRemove,
+  included = true,
+  onToggleIncluded,
 }: {
   event: ProposedEvent;
   onUpdate: (e: ProposedEvent) => void;
   onRemove: () => void;
+  included?: boolean;
+  onToggleIncluded?: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(event);
@@ -103,7 +107,11 @@ export function ProposedEventCard({
   }
 
   return (
-    <article className="rounded-2xl bg-card p-4 shadow-sm ring-1 ring-black/5">
+    <article
+      className={`rounded-2xl bg-card p-4 shadow-sm ring-1 ${
+        included ? "ring-black/5" : "opacity-50 ring-black/5"
+      }`}
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-medium text-muted">{dayLabel}</p>
@@ -136,6 +144,19 @@ export function ProposedEventCard({
           </div>
         </div>
         <div className="flex shrink-0 flex-col gap-1">
+          {onToggleIncluded ? (
+            <button
+              type="button"
+              onClick={onToggleIncluded}
+              className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                included
+                  ? "bg-primary-500/10 text-primary-500"
+                  : "bg-black/5 text-muted"
+              }`}
+            >
+              {included ? "Add" : "Skip"}
+            </button>
+          ) : null}
           <button
             type="button"
             aria-label="Edit"

@@ -37,6 +37,7 @@ export function PlanWishlistView({
   inviteUrl,
   showPartnerInvite,
   isPro,
+  planCount = 0,
 }: {
   plan: Plan;
   drafts: Draft[];
@@ -44,6 +45,7 @@ export function PlanWishlistView({
   inviteUrl?: string;
   showPartnerInvite: boolean;
   isPro: boolean;
+  planCount?: number;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -85,7 +87,7 @@ export function PlanWishlistView({
 
   return (
     <div className="-mx-4">
-      <div className="rounded-b-3xl bg-gradient-to-br from-coral/15 via-planner to-shell px-4 pb-6 pt-2 text-center">
+      <div className="rounded-b-3xl bg-gradient-to-br from-primary-500/12 via-planner to-shell px-4 pb-6 pt-2 text-center">
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-coral">
           {plan.status === "building" ? "Building your trip" : "Scheduled"}
         </p>
@@ -130,7 +132,6 @@ export function PlanWishlistView({
         <div className="mt-4">
           <SmartPlanButton
             planId={plan.id}
-            isPro={isPro}
             disabled={unsorted.length === 0}
           />
         </div>

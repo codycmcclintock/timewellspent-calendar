@@ -10,11 +10,14 @@ function buildSystemPrompt(ctx: {
   user_name: string;
   partner_name: string | null;
   recent_events_json: string;
+  trip_context?: string | null;
   mode: VoiceParseMode;
 }): string {
   const tripHint =
     ctx.mode === "trip"
-      ? "\nThe user is planning a trip — include travel legs as separate events with realistic drive durations."
+      ? `\nThe user is planning a trip — include travel legs as separate events with realistic drive durations.${
+          ctx.trip_context ? `\nTrip context: ${ctx.trip_context}` : ""
+        }`
       : "";
 
   return `You are a personal event planner inside a calendar app called Ruffles. The user just recorded a voice memo about their upcoming week or trip. Your job is to extract structured calendar events from their natural speech.

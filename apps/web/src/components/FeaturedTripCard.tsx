@@ -20,7 +20,7 @@ export function FeaturedTripCard({
       className="group mb-6 block overflow-hidden rounded-2xl bg-card ring-2 ring-coral/20 transition hover:ring-coral/40"
     >
       <div
-        className="relative h-32 bg-gradient-to-br from-terracotta/40 via-coral/30 to-planner"
+        className="relative h-32 bg-gradient-to-br from-primary-700/35 via-primary-500/25 to-planner"
         style={
           coverImageUrl
             ? {

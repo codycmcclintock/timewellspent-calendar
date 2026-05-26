@@ -43,7 +43,7 @@ export function HomeTabs({
     <div>
       <Link
         href="/record?mode=weekly"
-        className="mb-6 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-coral to-coral/85 py-4 text-sm font-semibold text-white shadow-md"
+        className="mb-6 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary-500 to-primary-600 py-4 text-sm font-semibold text-white shadow-md shadow-primary-500/25"
       >
         <Mic className="h-5 w-5" />
         Plan your week

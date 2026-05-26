@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import {
+  CALENDAR_SHARE_HELP,
+  CALENDAR_SHARE_PHONE,
+} from "@/lib/partner-copy";
 
 export function SharedCalendarBlock({
   feedUrl,
@@ -20,8 +24,8 @@ export function SharedCalendarBlock({
       </p>
       <p className="mt-1 font-serif text-xl font-semibold">Time Well Spent ❤️</p>
       <p className="mt-2 text-sm leading-relaxed text-white/75">
-        Every experience. Every &quot;let&apos;s actually do it&quot; moment. Download
-        the .ics file or subscribe so it stays on her phone.
+        Every experience. Every &quot;let&apos;s actually do it&quot; moment. Download{" "}
+        {CALENDAR_SHARE_PHONE}
       </p>
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
         <a
@@ -36,7 +40,7 @@ export function SharedCalendarBlock({
           onClick={() => setShowHelp(!showHelp)}
           className="flex-1 rounded-full border border-white/30 py-2.5 text-sm font-semibold text-white"
         >
-          How to share with her
+          {CALENDAR_SHARE_HELP}
         </button>
       </div>
       {showHelp ? (

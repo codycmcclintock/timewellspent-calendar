@@ -11,18 +11,18 @@ const steps = [
   },
   {
     icon: MapPin,
-    title: "We find the city",
-    body: "A NYC video creates or opens your New York City plan automatically.",
+    title: "We tag the destination",
+    body: "Reels land in your saved inbox — Tulum, Joshua Tree, wherever.",
   },
   {
     icon: List,
-    title: "Build your list",
-    body: "Everything lands in an unsorted list while you collect ideas.",
+    title: "Create a trip",
+    body: "Invite friends — saves for that city filter in. Matches surface with 💫.",
   },
   {
     icon: Sparkles,
-    title: "Smart Plan (pro)",
-    body: "One tap to map the best order, times, and gap fillers.",
+    title: "Plan from saves",
+    body: "Voice or AI builds your day from the pile — free on every trip.",
   },
 ];
 

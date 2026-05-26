@@ -15,6 +15,7 @@ const fraunces = Fraunces({
 export const metadata: Metadata = {
   title: "Ruffles — Where plans happen",
   description: "Adventures made easy. Shared calendar for couples.",
+  themeColor: "#e54b2a",
 };
 
 export default function RootLayout({

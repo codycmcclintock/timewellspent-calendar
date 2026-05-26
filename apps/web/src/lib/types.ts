@@ -45,6 +45,8 @@ export interface Plan {
   trip_length_days?: number | null;
   date_mode?: PlanDateMode;
   flexible_month?: string | null;
+  vibe?: string | null;
+  is_template?: boolean;
 }
 
 export interface CalendarEvent {
@@ -76,6 +78,12 @@ export interface CalendarEvent {
   legacy_uid: string | null;
   confidence: string | null;
   needs_confirmation: string[] | null;
+  item_type?: string | null;
+  tags?: string[] | null;
+  estimated_cost?: string | null;
+  source_type?: string | null;
+  source_text?: string | null;
+  external_url?: string | null;
   created_at: string;
   updated_at: string;
 }

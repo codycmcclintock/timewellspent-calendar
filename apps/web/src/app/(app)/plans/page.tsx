@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/user-context";
 import { PlansHub } from "@/components/plans/PlansHub";
+import { MatchedIdeasPanel } from "@/components/plans/MatchedIdeasPanel";
+import { getMatchedDrafts } from "@/app/actions";
 import { redirect } from "next/navigation";
 import type { Plan } from "@/lib/types";
 
@@ -34,11 +36,21 @@ export default async function PlansPage() {
     }
   }
 
+  let matches: Awaited<ReturnType<typeof getMatchedDrafts>> = [];
+  try {
+    matches = await getMatchedDrafts();
+  } catch {
+    /* migration 006 may not be applied */
+  }
+
   return (
-    <PlansHub
-      plans={planList}
-      unsortedCounts={unsortedCounts}
-      hasPartner={!!ctx.partner}
-    />
+    <>
+      <MatchedIdeasPanel matches={matches} />
+      <PlansHub
+        plans={planList}
+        unsortedCounts={unsortedCounts}
+        hasPartner={!!ctx.partner}
+      />
+    </>
   );
 }

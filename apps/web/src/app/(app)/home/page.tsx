@@ -5,13 +5,14 @@ import { getUserContext } from "@/lib/user-context";
 import { HomeTabs } from "@/components/HomeTabs";
 import { PartnerInviteBanner } from "@/components/PartnerInviteBanner";
 import { FeaturedTripCard } from "@/components/FeaturedTripCard";
+import { HomeHeartbeat } from "@/components/HomeHeartbeat";
 import { joinInviteUrl } from "@/lib/app-url";
 import {
   getWeekStart,
   parseWeekParam,
   dayRangeISO,
 } from "@/lib/dates";
-import type { CalendarEvent, Draft } from "@/lib/types";
+import type { CalendarEvent, Draft, Plan } from "@/lib/types";
 import { redirect } from "next/navigation";
 
 export default async function HomePage({
@@ -30,40 +31,77 @@ export default async function HomePage({
   const weekStart = parseWeekParam(params.week ?? null);
   const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
 
-  const [{ data: todayEvents }, { data: weekEvents }, { data: upcomingEvents }, { data: drafts }, { data: couple }] =
-    await Promise.all([
-      supabase
-        .from("events")
-        .select("*")
-        .eq("couple_id", ctx.coupleId)
-        .gte("starts_at", todayStart)
-        .lte("starts_at", todayEnd)
-        .order("starts_at"),
-      supabase
-        .from("events")
-        .select("*")
-        .eq("couple_id", ctx.coupleId)
-        .gte("starts_at", weekStart.toISOString())
-        .lte("starts_at", weekEnd.toISOString())
-        .order("starts_at"),
-      supabase
-        .from("events")
-        .select("*")
-        .eq("couple_id", ctx.coupleId)
-        .gte("starts_at", addDays(today, 1).toISOString())
-        .order("starts_at")
-        .limit(20),
-      supabase
-        .from("drafts")
-        .select("*")
-        .eq("couple_id", ctx.coupleId)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("couples")
-        .select("invite_token")
-        .eq("id", ctx.coupleId)
-        .single(),
-    ]);
+  const todayIso = today.toISOString().slice(0, 10);
+
+  const [
+    { data: todayEvents },
+    { data: weekEvents },
+    { data: upcomingEvents },
+    { data: drafts },
+    { data: couple },
+    { data: nextPlan },
+    { data: recentMoment },
+    { data: partnerEvents },
+  ] = await Promise.all([
+    supabase
+      .from("events")
+      .select("*")
+      .eq("couple_id", ctx.coupleId)
+      .gte("starts_at", todayStart)
+      .lte("starts_at", todayEnd)
+      .order("starts_at"),
+    supabase
+      .from("events")
+      .select("*")
+      .eq("couple_id", ctx.coupleId)
+      .gte("starts_at", weekStart.toISOString())
+      .lte("starts_at", weekEnd.toISOString())
+      .order("starts_at"),
+    supabase
+      .from("events")
+      .select("*")
+      .eq("couple_id", ctx.coupleId)
+      .gte("starts_at", addDays(today, 1).toISOString())
+      .order("starts_at")
+      .limit(20),
+    supabase
+      .from("drafts")
+      .select("*")
+      .eq("couple_id", ctx.coupleId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("couples")
+      .select("invite_token")
+      .eq("id", ctx.coupleId)
+      .single(),
+    supabase
+      .from("plans")
+      .select("*")
+      .eq("couple_id", ctx.coupleId)
+      .or(`starts_on.gte.${todayIso},slug.eq.joshua-tree`)
+      .order("starts_on", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("events")
+      .select("*")
+      .eq("couple_id", ctx.coupleId)
+      .lt("starts_at", today.toISOString())
+      .not("description", "is", null)
+      .order("starts_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    ctx.partner
+      ? supabase
+          .from("events")
+          .select("*")
+          .eq("couple_id", ctx.coupleId)
+          .eq("created_by", ctx.partner.id)
+          .gte("starts_at", today.toISOString())
+          .order("starts_at")
+          .limit(1)
+      : Promise.resolve({ data: null }),
+  ]);
 
   const inviteUrl = couple?.invite_token
     ? joinInviteUrl(couple.invite_token)
@@ -74,10 +112,15 @@ export default async function HomePage({
   return (
     <Suspense fallback={<p className="text-muted">Loading…</p>}>
       {!ctx.partner && inviteUrl ? (
-        <div className="mb-6">
-          <PartnerInviteBanner inviteUrl={inviteUrl} />
-        </div>
+        <PartnerInviteBanner inviteUrl={inviteUrl} />
       ) : null}
+
+      <HomeHeartbeat
+        nextPlan={(nextPlan as Plan) ?? null}
+        recentMoment={(recentMoment as CalendarEvent) ?? null}
+        partnerNextEvent={(partnerEvents?.[0] as CalendarEvent) ?? null}
+        partnerName={ctx.partner?.display_name ?? null}
+      />
 
       {showTripCard ? (
         <FeaturedTripCard

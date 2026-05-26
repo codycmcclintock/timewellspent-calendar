@@ -5,6 +5,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { AppHeader } from "@/components/AppHeader";
 import { getUserContext } from "@/lib/user-context";
 import { createClient } from "@/lib/supabase/server";
+import { joinInviteUrl } from "@/lib/app-url";
 
 export default async function AppLayout({
   children,
@@ -27,6 +28,11 @@ export default async function AppLayout({
         displayName={ctx.profile.display_name}
         partnerName={ctx.partner?.display_name ?? null}
         showInviteLink={!ctx.partner}
+        inviteUrl={
+          !ctx.partner && couple?.invite_token
+            ? joinInviteUrl(couple.invite_token)
+            : null
+        }
       />
       <main className="px-4 py-6">{children}</main>
       <BottomNav />

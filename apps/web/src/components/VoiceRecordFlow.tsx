@@ -24,6 +24,7 @@ export function VoiceRecordFlow({
   const [phase, setPhase] = useState<Phase>("idle");
   const [transcript, setTranscript] = useState("");
   const [proposed, setProposed] = useState<ProposedEvent[]>([]);
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const recognitionRef = useRef<SpeechRecognition | null>(null);
@@ -97,7 +98,7 @@ export function VoiceRecordFlow({
     setPhase("parsing");
     startTransition(async () => {
       try {
-        const events = await parseVoiceTranscript(transcript, mode);
+        const events = await parseVoiceTranscript(transcript, mode, planSlug);
         if (events.length === 0) {
           setError(
             "No concrete plans found — try mentioning specific times and places.",
@@ -106,6 +107,7 @@ export function VoiceRecordFlow({
           return;
         }
         setProposed(events);
+        setSelected(Object.fromEntries(events.map((e) => [e.clientId, true])));
         setPhase("review");
       } catch (e) {
         setError(formatActionError(e));
@@ -116,9 +118,14 @@ export function VoiceRecordFlow({
 
   function addAll() {
     setError(null);
+    const toAdd = proposed.filter((e) => selected[e.clientId] !== false);
+    if (toAdd.length === 0) {
+      setError("Select at least one moment to add.");
+      return;
+    }
     startTransition(async () => {
       try {
-        await confirmProposedEvents(proposed, {
+        await confirmProposedEvents(toAdd, {
           planSlug: planSlug ?? (mode === "trip" ? "joshua-tree" : undefined),
         });
         if (mode === "trip" || planSlug) {
@@ -190,20 +197,16 @@ export function VoiceRecordFlow({
               <button
                 type="button"
                 onClick={toggleRecord}
-                className={`flex h-24 w-24 items-center justify-center rounded-full shadow-lg transition ${
+                className={`flex h-28 w-full max-w-sm items-center justify-center rounded-full shadow-lg transition ${
                   phase === "recording"
-                    ? "bg-[#b85c38] ring-4 ring-[#b85c38]/30"
-                    : "bg-white ring-4 ring-black/10"
+                    ? "bg-primary-600 ring-4 ring-primary-500/30"
+                    : "bg-primary-500 ring-4 ring-primary-500/20"
                 }`}
                 aria-label={phase === "recording" ? "Stop recording" : "Start recording"}
               >
-                <span
-                  className={`rounded-full ${
-                    phase === "recording"
-                      ? "h-8 w-8 bg-white"
-                      : "h-10 w-10 bg-red-500"
-                  }`}
-                />
+                <span className="text-sm font-semibold text-white">
+                  {phase === "recording" ? "Stop" : "Record"}
+                </span>
               </button>
               <p className="text-xs text-muted">
                 {phase === "recording" ? "Tap to stop" : "Tap to record"}
@@ -214,23 +217,35 @@ export function VoiceRecordFlow({
       ) : (
         <>
           <p className="mt-4 text-center text-sm text-muted">
-            {proposed.length} moments — edit or remove, then add all.
+            {proposed.length} moments — skip any you don&apos;t want, then add.
           </p>
           <div className="mt-4 flex-1 space-y-3 overflow-y-auto pb-28">
             {proposed.map((e) => (
               <ProposedEventCard
                 key={e.clientId}
                 event={e}
+                included={selected[e.clientId] !== false}
+                onToggleIncluded={() =>
+                  setSelected((s) => ({
+                    ...s,
+                    [e.clientId]: s[e.clientId] === false,
+                  }))
+                }
                 onUpdate={(next) =>
                   setProposed((list) =>
                     list.map((x) => (x.clientId === e.clientId ? next : x)),
                   )
                 }
-                onRemove={() =>
+                onRemove={() => {
                   setProposed((list) =>
                     list.filter((x) => x.clientId !== e.clientId),
-                  )
-                }
+                  );
+                  setSelected((s) => {
+                    const next = { ...s };
+                    delete next[e.clientId];
+                    return next;
+                  });
+                }}
               />
             ))}
           </div>
@@ -242,11 +257,17 @@ export function VoiceRecordFlow({
           <div className="fixed bottom-20 left-0 right-0 z-40 mx-auto max-w-lg px-4">
             <button
               type="button"
-              disabled={pending || proposed.length === 0}
+              disabled={
+                pending ||
+                proposed.filter((e) => selected[e.clientId] !== false).length ===
+                  0
+              }
               onClick={addAll}
-              className="w-full rounded-full bg-coral py-4 text-sm font-semibold text-white shadow-lg disabled:opacity-50"
+              className="w-full rounded-full bg-primary-500 py-4 text-sm font-semibold text-white shadow-lg disabled:opacity-50"
             >
-              {pending ? "Saving…" : `Add all (${proposed.length})`}
+              {pending
+                ? "Saving…"
+                : `Add selected (${proposed.filter((e) => selected[e.clientId] !== false).length})`}
             </button>
           </div>
         </>

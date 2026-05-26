@@ -5,6 +5,7 @@ import { parseISO, isBefore, startOfDay } from "date-fns";
 import type { Plan } from "@/lib/types";
 import { PlanCreateCard } from "@/components/plans/PlanCreateCard";
 import { LinkIngestBar } from "@/components/plans/LinkIngestBar";
+import { isLinkIngestEnabled } from "@/lib/feature-flags";
 import { HowItWorksPlans } from "@/components/plans/HowItWorksPlans";
 import { PlanCard } from "@/components/PlanCard";
 import Image from "next/image";
@@ -47,9 +48,11 @@ export function PlansHub({
         <HowItWorksPlans />
       </div>
 
-      <div className="mt-5">
-        <LinkIngestBar />
-      </div>
+      {isLinkIngestEnabled() ? (
+        <div className="mt-5">
+          <LinkIngestBar inbox placeholder="Save a reel to your inbox…" />
+        </div>
+      ) : null}
 
       <div className="mt-6">
         <PlanCreateCard />
@@ -67,9 +70,9 @@ export function PlansHub({
           <p className="mt-4 font-serif text-xl font-semibold text-ink">
             No plans yet
           </p>
-          <p className="mx-auto mt-2 max-w-xs text-sm text-muted">
-            Paste a TikTok or Instagram link above — we&apos;ll open the right city plan. Or
-            start one manually.
+          <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted">
+            Nothing planned yet. What&apos;s something you&apos;ve been wanting to do together?
+            Start a trip below.
           </p>
           <div className="mt-6">
             <HowItWorksPlans variant="inline" />

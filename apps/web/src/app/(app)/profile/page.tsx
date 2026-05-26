@@ -2,12 +2,13 @@ import { createClient } from "@/lib/supabase/server";
 import { getUserContext, ensureIcsToken } from "@/lib/user-context";
 import { feedUrl } from "@/lib/ics-export";
 import { joinInviteUrl } from "@/lib/app-url";
-import { CalendarLinkCard } from "@/components/CalendarLinkCard";
-import { PartnerInviteBanner } from "@/components/PartnerInviteBanner";
+import { CoupleDashboard } from "@/components/CoupleDashboard";
+import { SavedInbox } from "@/components/plans/SavedInbox";
+import { ProPricingCard } from "@/components/plans/ProPricingCard";
 import { redirect } from "next/navigation";
-import { signOut } from "@/app/actions";
-import type { Todo } from "@/lib/types";
-import { TodoList } from "@/components/TodoList";
+import { signOut, getInboxReelSaveCount } from "@/app/actions";
+import type { Draft, Plan, Todo } from "@/lib/types";
+import { differenceInDays, parseISO } from "date-fns";
 
 export default async function ProfilePage() {
   const ctx = await getUserContext();
@@ -19,9 +20,18 @@ export default async function ProfilePage() {
   const supabase = await createClient();
   const { data: couple } = await supabase
     .from("couples")
-    .select("invite_token, name")
+    .select("invite_token, name, created_at, is_pro")
     .eq("id", ctx.coupleId)
     .single();
+
+  const { data: drafts } = await supabase
+    .from("drafts")
+    .select("*")
+    .eq("couple_id", ctx.coupleId)
+    .order("created_at", { ascending: false });
+
+  const inboxSavesThisMonth = await getInboxReelSaveCount();
+  const isPro = ctx.isPro ?? couple?.is_pro ?? false;
 
   const inviteUrl = couple?.invite_token
     ? joinInviteUrl(couple.invite_token)
@@ -33,32 +43,51 @@ export default async function ProfilePage() {
     .eq("couple_id", ctx.coupleId)
     .order("created_at", { ascending: false });
 
+  const { data: firstEvent } = await supabase
+    .from("events")
+    .select("created_at")
+    .eq("couple_id", ctx.coupleId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  const anchor = firstEvent?.created_at ?? couple?.created_at;
+  const daysTogether = anchor
+    ? Math.max(0, differenceInDays(new Date(), parseISO(anchor)))
+    : 0;
+
+  const today = new Date().toISOString().slice(0, 10);
+  const { data: nextPlan } = await supabase
+    .from("plans")
+    .select("*")
+    .eq("couple_id", ctx.coupleId)
+    .or(`starts_on.gte.${today},ends_on.gte.${today}`)
+    .order("starts_on", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
   return (
-    <div className="space-y-6">
-      <section>
-        <h2 className="font-serif text-2xl font-semibold">Profile</h2>
-        <p className="text-sm text-muted">{ctx.profile.display_name}</p>
-        {ctx.partner ? (
-          <p className="mt-1 text-sm text-ink/80">
-            Planning with {ctx.partner.display_name}
-          </p>
-        ) : null}
-      </section>
+    <div>
+      <CoupleDashboard
+        profile={ctx.profile}
+        partner={ctx.partner}
+        coupleName={couple?.name ?? null}
+        daysTogether={daysTogether}
+        nextPlan={(nextPlan as Plan) ?? null}
+        feedUrl={url}
+        inviteUrl={inviteUrl}
+        todos={(todos ?? []) as Todo[]}
+      />
 
-      {!ctx.partner && inviteUrl ? (
-        <PartnerInviteBanner inviteUrl={inviteUrl} />
-      ) : null}
-
-      <section>
-        <h3 className="mb-2 text-sm font-semibold text-muted">
-          Also add to Apple Calendar
-        </h3>
-        <CalendarLinkCard feedUrl={url} />
-      </section>
-
-      <TodoList initialTodos={(todos ?? []) as Todo[]} />
-
-      <form action={signOut}>
+      <div className="mt-8 space-y-6">
+        <SavedInbox
+          drafts={(drafts ?? []) as Draft[]}
+          inboxSavesThisMonth={inboxSavesThisMonth}
+          isPro={isPro}
+        />
+        <ProPricingCard isPro={isPro} inboxSavesThisMonth={inboxSavesThisMonth} />
+      </div>
+      <form action={signOut} className="mt-8">
         <button
           type="submit"
           className="w-full rounded-full border border-black/10 py-3 text-sm font-medium text-muted"

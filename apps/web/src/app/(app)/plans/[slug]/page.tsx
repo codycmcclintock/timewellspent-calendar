@@ -67,17 +67,43 @@ export default async function PlanDetailPage({
     .eq("plan_id", plan.id)
     .order("starts_at");
 
-  if (slug === "joshua-tree" && (!events || events.length === 0)) {
-    try {
-      await ensureJoshuaTreeItinerary();
-      const { data: refreshed } = await supabase
+  if (slug === "joshua-tree") {
+    if (!events?.length) {
+      try {
+        const result = await ensureJoshuaTreeItinerary();
+        if (result.planId && result.planId !== plan.id) {
+          const { data: syncedPlan } = await supabase
+            .from("plans")
+            .select("*")
+            .eq("id", result.planId)
+            .single();
+          if (syncedPlan) plan = syncedPlan;
+        }
+        const { data: refreshed } = await supabase
+          .from("events")
+          .select("*")
+          .eq("plan_id", plan.id)
+          .order("starts_at");
+        events = refreshed;
+      } catch (err) {
+        console.error("[joshua-tree] sync failed:", err);
+      }
+    }
+
+    if (!events?.length) {
+      const { JT_RANGE_START, JT_RANGE_END } = await import(
+        "@/lib/joshua-tree-sync"
+      );
+      const { data: windowEvents } = await supabase
         .from("events")
         .select("*")
-        .eq("plan_id", plan.id)
+        .eq("couple_id", ctx.coupleId)
+        .gte("starts_at", JT_RANGE_START)
+        .lte("starts_at", JT_RANGE_END)
         .order("starts_at");
-      events = refreshed;
-    } catch {
-      /* optional */
+      if (windowEvents?.length) {
+        events = windowEvents;
+      }
     }
   }
 
@@ -103,6 +129,11 @@ export default async function PlanDetailPage({
 
   await ensureIcsToken(ctx.userId);
 
+  const { count: planCount } = await supabase
+    .from("plans")
+    .select("id", { count: "exact", head: true })
+    .eq("couple_id", ctx.coupleId);
+
   const typedPlan = plan as Plan;
   const useWishlist = !isJoshuaTreePlan(slug);
 
@@ -116,6 +147,7 @@ export default async function PlanDetailPage({
           inviteUrl={inviteUrl}
           showPartnerInvite={!ctx.partner}
           isPro={ctx.isPro ?? false}
+          planCount={planCount ?? 0}
         />
       ) : (
         <TripItineraryView
@@ -123,6 +155,8 @@ export default async function PlanDetailPage({
           events={(events ?? []) as CalendarEvent[]}
           inviteUrl={inviteUrl}
           showPartnerInvite={!ctx.partner}
+          isPro={ctx.isPro ?? false}
+          planCount={planCount ?? 0}
         />
       )}
     </Suspense>

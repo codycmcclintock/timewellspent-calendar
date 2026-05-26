@@ -7,10 +7,15 @@ import { PlanWherePicker } from "@/components/plans/PlanWherePicker";
 
 export function LinkIngestBar({
   planId,
+  inbox = false,
   placeholder = "Paste Instagram or TikTok link…",
+  onLimitReached,
 }: {
   planId?: string;
+  /** Save to profile inbox (default when no planId). */
+  inbox?: boolean;
   placeholder?: string;
+  onLimitReached?: () => void;
 }) {
   const router = useRouter();
   const [url, setUrl] = useState("");
@@ -18,30 +23,46 @@ export function LinkIngestBar({
   const [pickWhere, setPickWhere] = useState<{
     sourceUrl: string;
     sourceType: string;
+    inboxMode: boolean;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  function handleError(e: unknown) {
+    if (e instanceof Error && e.message === "SAVE_LIMIT_REACHED") {
+      onLimitReached?.();
+      setError("You've hit your free reel saves this month. Upgrade for unlimited.");
+      return;
+    }
+    setError(e instanceof Error ? e.message : "Could not save link");
+  }
 
   function submit() {
     if (!url.trim()) return;
     setError(null);
     startTransition(async () => {
       try {
-        const result = await ingestLink(url.trim(), planId ? { planId } : undefined);
+        const result = await ingestLink(
+          url.trim(),
+          planId ? { planId } : { inbox: inbox || true },
+        );
         if (result.needsDestination) {
           setPickWhere({
             sourceUrl: result.sourceUrl,
             sourceType: result.sourceType,
+            inboxMode: result.inbox,
           });
           return;
         }
         setUrl("");
-        if (result.planSlug) {
+        if (result.inbox) {
+          router.refresh();
+        } else if (result.planSlug) {
           router.push(`/plans/${result.planSlug}`);
         } else {
           router.refresh();
         }
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Could not save link");
+        handleError(e);
       }
     });
   }
@@ -54,13 +75,15 @@ export function LinkIngestBar({
           destination,
           destinationKey,
           planId,
+          inbox: pickWhere.inboxMode && !planId,
         });
         setPickWhere(null);
         setUrl("");
-        if (result.planSlug) router.push(`/plans/${result.planSlug}`);
+        if (result.inbox) router.refresh();
+        else if (result.planSlug) router.push(`/plans/${result.planSlug}`);
         else router.refresh();
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Could not save link");
+        handleError(e);
       }
     });
   }
@@ -79,7 +102,7 @@ export function LinkIngestBar({
           type="button"
           disabled={pending || !url.trim()}
           onClick={submit}
-          className="shrink-0 rounded-full bg-coral px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+          className="shrink-0 rounded-full bg-primary-500 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
         >
           {pending ? "…" : "Save"}
         </button>
@@ -89,9 +112,9 @@ export function LinkIngestBar({
       {pickWhere ? (
         <div className="fixed inset-0 z-[110] flex items-end justify-center bg-black/40 p-4">
           <div className="max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-card p-4">
-            <p className="font-semibold text-ink">Where is this trip?</p>
+            <p className="font-semibold text-ink">Where is this?</p>
             <p className="mt-1 text-sm text-muted">
-              We couldn&apos;t detect the city from this link.
+              Tag the destination for your saved reel.
             </p>
             <div className="mt-4">
               <PlanWherePicker

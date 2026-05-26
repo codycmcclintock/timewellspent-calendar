@@ -27,8 +27,6 @@ export default async function OnboardingPage({
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (membership) redirect("/home");
-
   if (params.join) {
     try {
       await joinCouple(params.join);
@@ -45,6 +43,8 @@ export default async function OnboardingPage({
       );
     }
   }
+
+  if (membership) redirect("/home");
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">

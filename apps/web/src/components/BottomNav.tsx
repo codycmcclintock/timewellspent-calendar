@@ -7,14 +7,14 @@ import { CalendarDays, Map, User } from "lucide-react";
 const tabs = [
   { href: "/home", label: "Home", icon: CalendarDays },
   { href: "/plans", label: "Plans", icon: Map },
-  { href: "/profile", label: "Profile", icon: User },
+  { href: "/profile", label: "You", icon: User },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-[#b85c38]/10 bg-white pb-safe shadow-[0_-4px_20px_rgba(184,92,56,0.08)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-primary-500/10 bg-white pb-safe shadow-[0_-4px_20px_rgba(229,75,42,0.08)]">
       <div className="mx-auto flex max-w-lg justify-around px-4 py-2">
         {tabs.map(({ href, label, icon: Icon }) => {
           const active = pathname.startsWith(href);

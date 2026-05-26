@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { PLAN_CARD_NO_PARTNER } from "@/lib/partner-copy";
 import type { Plan } from "@/lib/types";
 
 function dateLabel(plan: Plan) {
@@ -44,7 +45,7 @@ export function PlanCard({
       href={`/plans/${plan.slug}`}
       className="group block overflow-hidden rounded-2xl bg-card shadow-sm ring-2 ring-coral/15 transition hover:ring-coral/35"
     >
-      <div className="relative h-44 bg-gradient-to-br from-terracotta/30 to-coral/20">
+      <div className="relative h-44 bg-gradient-to-br from-primary-700/30 to-primary-500/20">
         {plan.cover_image_url && (
           <img
             src={plan.cover_image_url}
@@ -77,7 +78,7 @@ export function PlanCard({
         <p className="line-clamp-2 p-3 text-sm text-muted">{plan.description}</p>
       ) : (
         <p className="p-3 text-sm text-muted">
-          {hasPartner ? "Tap to add reels and plan together" : "Tap to build your list — invite her when ready"}
+          {hasPartner ? "Tap to add reels and plan together" : PLAN_CARD_NO_PARTNER}
         </p>
       )}
     </Link>
