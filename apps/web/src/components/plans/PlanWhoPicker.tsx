@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PartnerInviteBanner } from "@/components/PartnerInviteBanner";
+import { PartnerInviteBanner } from "@/components/PartnerInviteBannerClient";
 
 export function PlanWhoPicker({
   inviteUrl,

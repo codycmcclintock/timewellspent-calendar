@@ -7,7 +7,7 @@ import { TripPageShell } from "@/components/itinerary/TripPageShell";
 import { JoshuaTreeItinerary } from "@/components/itinerary/JoshuaTreeItinerary";
 import { TripFab } from "@/components/itinerary/TripFab";
 import { TripPlannerPanel } from "@/components/TripPlannerPanel";
-import { PartnerInviteBanner } from "@/components/PartnerInviteBanner";
+import { PartnerInviteBanner } from "@/components/PartnerInviteBannerClient";
 import { planDayKeys } from "@/lib/plan-days";
 import type { CalendarEvent, Plan } from "@/lib/types";
 

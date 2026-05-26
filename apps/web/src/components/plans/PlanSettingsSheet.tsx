@@ -6,7 +6,7 @@ import {
   PlanWhenPicker,
   type WhenSelection,
 } from "@/components/plans/PlanWhenPicker";
-import { PartnerInviteBanner } from "@/components/PartnerInviteBanner";
+import { PartnerInviteBanner } from "@/components/PartnerInviteBannerClient";
 import { updatePlanSettings } from "@/app/actions";
 import type { Plan } from "@/lib/types";
 

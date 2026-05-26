@@ -3,7 +3,7 @@ import { addDays, endOfWeek, startOfDay } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/user-context";
 import { HomeTabs } from "@/components/HomeTabs";
-import { PartnerInviteBanner } from "@/components/PartnerInviteBanner";
+import { PartnerInviteBanner } from "@/components/PartnerInviteBannerClient";
 import { FeaturedTripCard } from "@/components/FeaturedTripCard";
 import { HomeHeartbeat } from "@/components/HomeHeartbeat";
 import { joinInviteUrl } from "@/lib/app-url";

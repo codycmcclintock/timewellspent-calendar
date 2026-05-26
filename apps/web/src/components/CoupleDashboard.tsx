@@ -1,8 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { format, parseISO } from "date-fns";
 import { CalendarLinkCard } from "@/components/CalendarLinkCard";
-import { PartnerInviteBanner } from "@/components/PartnerInviteBanner";
+import { PartnerInviteBanner } from "@/components/PartnerInviteBannerClient";
 import { TodoList } from "@/components/TodoList";
 import type { CalendarEvent, Plan, Profile, Todo } from "@/lib/types";
 
@@ -90,11 +89,13 @@ function Avatar({ profile, label }: { profile: Profile; label: string }) {
   return (
     <div className="text-center">
       {profile.avatar_url ? (
-        <Image
+        // OAuth avatars (Google, etc.) — plain img avoids next/image hostname failures
+        <img
           src={profile.avatar_url}
           alt=""
           width={56}
           height={56}
+          referrerPolicy="no-referrer"
           className="mx-auto h-14 w-14 rounded-full object-cover ring-2 ring-primary-500/20"
         />
       ) : (
