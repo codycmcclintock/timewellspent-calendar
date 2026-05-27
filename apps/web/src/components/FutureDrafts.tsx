@@ -21,7 +21,7 @@ export function FutureDrafts({ drafts }: { drafts: Draft[] }) {
         </p>
         {isLinkIngestEnabled() ? (
           <div className="mt-4">
-            <LinkIngestBar inbox />
+            <LinkIngestBar />
           </div>
         ) : (
           <Link

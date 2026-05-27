@@ -47,7 +47,9 @@ export async function updateSession(request: NextRequest) {
     path.startsWith("/join") ||
     path.startsWith("/onboarding");
   const isPublicApi =
-    path.startsWith("/api/feed") || path.startsWith("/api/auth");
+    path.startsWith("/api/feed") ||
+    path.startsWith("/api/auth") ||
+    path.startsWith("/api/ios");
 
   if (!user && !isAuthRoute && !isPublicApi) {
     const url = request.nextUrl.clone();

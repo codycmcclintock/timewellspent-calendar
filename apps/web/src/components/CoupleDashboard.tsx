@@ -1,7 +1,11 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { format, parseISO } from "date-fns";
 import { CalendarLinkCard } from "@/components/CalendarLinkCard";
 import { PartnerInviteBanner } from "@/components/PartnerInviteBannerClient";
+import { InvitePartnerSheet } from "@/components/InvitePartnerSheet";
 import { TodoList } from "@/components/TodoList";
 import type { CalendarEvent, Plan, Profile, Todo } from "@/lib/types";
 
@@ -24,6 +28,8 @@ export function CoupleDashboard({
   inviteUrl: string | null;
   todos: Todo[];
 }) {
+  const [inviteOpen, setInviteOpen] = useState(false);
+
   const title = partner
     ? `You & ${partner.display_name?.split(/\s+/)[0] ?? "them"}`
     : "You";
@@ -47,9 +53,14 @@ export function CoupleDashboard({
         {partner ? (
           <Avatar profile={partner} label={partner.display_name ?? "Partner"} />
         ) : (
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-100 text-2xl text-primary-600">
+          <button
+            type="button"
+            onClick={() => setInviteOpen(true)}
+            aria-label="Invite your partner"
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-100 text-2xl font-semibold text-primary-600 ring-2 ring-primary-500/25 transition hover:bg-primary-200 hover:ring-primary-500/40"
+          >
             +
-          </div>
+          </button>
         )}
       </div>
 
@@ -81,6 +92,12 @@ export function CoupleDashboard({
       </section>
 
       <TodoList initialTodos={todos} />
+
+      <InvitePartnerSheet
+        open={inviteOpen}
+        onClose={() => setInviteOpen(false)}
+        inviteUrl={inviteUrl}
+      />
     </div>
   );
 }
@@ -89,7 +106,6 @@ function Avatar({ profile, label }: { profile: Profile; label: string }) {
   return (
     <div className="text-center">
       {profile.avatar_url ? (
-        // OAuth avatars (Google, etc.) — plain img avoids next/image hostname failures
         <img
           src={profile.avatar_url}
           alt=""

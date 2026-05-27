@@ -4,16 +4,17 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ingestLink } from "@/app/actions";
 import { PlanWherePicker } from "@/components/plans/PlanWherePicker";
+import { ReelAutoAddToast } from "@/components/plans/ReelAutoAddToast";
 
 export function LinkIngestBar({
   planId,
-  inbox = false,
+  forceInbox = false,
   placeholder = "Paste Instagram or TikTok link…",
   onLimitReached,
 }: {
   planId?: string;
-  /** Save to profile inbox (default when no planId). */
-  inbox?: boolean;
+  /** Save to profile inbox (strays) instead of auto-routing to a trip. */
+  forceInbox?: boolean;
   placeholder?: string;
   onLimitReached?: () => void;
 }) {
@@ -23,9 +24,14 @@ export function LinkIngestBar({
   const [pickWhere, setPickWhere] = useState<{
     sourceUrl: string;
     sourceType: string;
-    inboxMode: boolean;
+    forceInbox: boolean;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    draftId: string;
+    planSlug?: string;
+  } | null>(null);
 
   function handleError(e: unknown) {
     if (e instanceof Error && e.message === "SAVE_LIMIT_REACHED") {
@@ -36,6 +42,25 @@ export function LinkIngestBar({
     setError(e instanceof Error ? e.message : "Could not save link");
   }
 
+  function handleSuccess(result: Awaited<ReturnType<typeof ingestLink>>) {
+    if (result.needsDestination) return;
+    setUrl("");
+    if (result.autoRouted && result.draft) {
+      setToast({
+        message: `Added ${result.draftTitle ?? "save"} to ${result.planTitle ?? "your trip"}`,
+        draftId: result.draft.id,
+        planSlug: result.planSlug,
+      });
+      router.refresh();
+      return;
+    }
+    if (result.planSlug && !result.inbox) {
+      router.push(`/plans/${result.planSlug}`);
+      return;
+    }
+    router.refresh();
+  }
+
   function submit() {
     if (!url.trim()) return;
     setError(null);
@@ -43,24 +68,17 @@ export function LinkIngestBar({
       try {
         const result = await ingestLink(
           url.trim(),
-          planId ? { planId } : { inbox: inbox || true },
+          planId ? { planId } : { forceInbox },
         );
         if (result.needsDestination) {
           setPickWhere({
             sourceUrl: result.sourceUrl,
             sourceType: result.sourceType,
-            inboxMode: result.inbox,
+            forceInbox: result.forceInbox,
           });
           return;
         }
-        setUrl("");
-        if (result.inbox) {
-          router.refresh();
-        } else if (result.planSlug) {
-          router.push(`/plans/${result.planSlug}`);
-        } else {
-          router.refresh();
-        }
+        handleSuccess(result);
       } catch (e) {
         handleError(e);
       }
@@ -75,13 +93,12 @@ export function LinkIngestBar({
           destination,
           destinationKey,
           planId,
-          inbox: pickWhere.inboxMode && !planId,
+          forceInbox: pickWhere.forceInbox && !planId,
         });
         setPickWhere(null);
         setUrl("");
-        if (result.inbox) router.refresh();
-        else if (result.planSlug) router.push(`/plans/${result.planSlug}`);
-        else router.refresh();
+        if (result.needsDestination) return;
+        handleSuccess(result);
       } catch (e) {
         handleError(e);
       }
@@ -90,6 +107,14 @@ export function LinkIngestBar({
 
   return (
     <div>
+      {toast ? (
+        <ReelAutoAddToast
+          message={toast.message}
+          draftId={toast.draftId}
+          planSlug={toast.planSlug}
+          onDismiss={() => setToast(null)}
+        />
+      ) : null}
       <div className="flex gap-2">
         <input
           className="min-w-0 flex-1 rounded-xl border border-black/10 bg-card px-4 py-3 text-sm"
@@ -114,7 +139,7 @@ export function LinkIngestBar({
           <div className="max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-card p-4">
             <p className="font-semibold text-ink">Where is this?</p>
             <p className="mt-1 text-sm text-muted">
-              Tag the destination for your saved reel.
+              We couldn&apos;t tell from the link — pick a trip destination.
             </p>
             <div className="mt-4">
               <PlanWherePicker

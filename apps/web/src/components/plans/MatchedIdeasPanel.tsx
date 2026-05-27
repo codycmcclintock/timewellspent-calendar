@@ -9,10 +9,10 @@ export function MatchedIdeasPanel({
   if (matches.length === 0) return null;
 
   return (
-    <section className="mb-6 rounded-2xl border border-gold/30 bg-gold/5 p-4 ring-1 ring-gold/20">
-      <p className="font-serif text-lg font-semibold text-ink">💫 Match</p>
+    <section className="mb-6 rounded-2xl border-2 border-gold/40 bg-gold/10 p-4 shadow-[0_0_0_4px_rgba(255,184,0,0.08)] ring-1 ring-gold/25">
+      <p className="font-serif text-xl font-semibold text-ink">It&apos;s a match!</p>
       <p className="mt-1 text-sm text-muted">
-        You both saved the same reel — add it to your trip in one tap.
+        You and your partner saved the same spot — the dopamine hit.
       </p>
       <ul className="mt-3 space-y-2">
         {matches.map(({ draft, partnerTitle }) => (

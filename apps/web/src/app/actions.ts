@@ -3,6 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import {
+  createCoupleCore,
+  joinCoupleCore,
+} from "@/lib/couple-onboarding";
+import {
   parseCalendarFile,
   defaultCalendarPath,
   fallbackCalendarPath,
@@ -160,39 +164,6 @@ async function ensureProfile(
   if (notifError && notifError.code !== "23505") throw notifError;
 }
 
-async function ensureProfileWithService(
-  service: Awaited<ReturnType<typeof createServiceClient>>,
-  user: { id: string; email?: string; user_metadata?: Record<string, unknown> },
-) {
-  const { data: existing } = await service
-    .from("profiles")
-    .select("id")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (existing) return;
-
-  const meta = user.user_metadata ?? {};
-  const displayName =
-    (typeof meta.full_name === "string" && meta.full_name) ||
-    (typeof meta.name === "string" && meta.name) ||
-    user.email?.split("@")[0] ||
-    "User";
-
-  const { error: profileError } = await service.from("profiles").insert({
-    id: user.id,
-    display_name: displayName,
-    avatar_url:
-      typeof meta.avatar_url === "string" ? meta.avatar_url : null,
-  });
-  if (profileError) throw profileError;
-
-  const { error: notifError } = await service
-    .from("notification_preferences")
-    .insert({ user_id: user.id, email_on_us_events: true });
-  if (notifError && notifError.code !== "23505") throw notifError;
-}
-
 async function requireCouple() {
   const { supabase, user } = await requireAuth();
   const { data: membership } = await supabase
@@ -211,45 +182,7 @@ export async function createCouple(name?: string) {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  const service = await createServiceClient();
-  await ensureProfileWithService(service, user);
-
-  const { data: existingMember } = await service
-    .from("couple_members")
-    .select("couple_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (existingMember?.couple_id) return existingMember.couple_id;
-
-  const { data: couple, error } = await service
-    .from("couples")
-    .insert({ name: name ?? "Our plans", created_by: user.id })
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  const { error: memberError } = await service.from("couple_members").insert({
-    couple_id: couple.id,
-    user_id: user.id,
-    role: "member",
-  });
-  if (memberError) throw memberError;
-
-  const { data: tokenRow } = await service
-    .from("ics_feed_tokens")
-    .select("token")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (!tokenRow) {
-    const token = randomBytes(24).toString("hex");
-    const { error: tokenError } = await service
-      .from("ics_feed_tokens")
-      .insert({ user_id: user.id, token });
-    if (tokenError) throw tokenError;
-  }
+  const coupleId = await createCoupleCore(user, { name });
 
   revalidatePath("/");
   try {
@@ -257,93 +190,17 @@ export async function createCouple(name?: string) {
   } catch {
     /* optional seed */
   }
-  return couple.id;
-}
-
-async function getCoupleMemberCount(
-  service: Awaited<ReturnType<typeof createServiceClient>>,
-  coupleId: string,
-) {
-  const { count } = await service
-    .from("couple_members")
-    .select("user_id", { count: "exact", head: true })
-    .eq("couple_id", coupleId);
-  return count ?? 0;
+  return coupleId;
 }
 
 export async function joinCouple(inviteToken: string) {
   const { supabase, user } = await requireAuth();
-  const service = await createServiceClient();
-
-  const { data: inviterCouple } = await service
-    .from("couples")
-    .select("id")
-    .eq("invite_token", inviteToken)
-    .single();
-
-  if (!inviterCouple) throw new Error("Invalid invite");
-
-  const inviterCount = await getCoupleMemberCount(service, inviterCouple.id);
-  if (inviterCount >= 2) {
-    throw new Error("This invite link is full — the calendar already has two people.");
-  }
-
-  const { data: existing } = await supabase
-    .from("couple_members")
-    .select("couple_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (existing?.couple_id === inviterCouple.id) {
-    return inviterCouple.id;
-  }
-
-  if (existing) {
-    const currentCount = await getCoupleMemberCount(service, existing.couple_id);
-    if (currentCount >= 2) {
-      throw new Error(
-        "You're already on a shared calendar with someone else. Leave that space before joining a new one.",
-      );
-    }
-    if (currentCount === 1) {
-      const { error: joinErr } = await service.from("couple_members").insert({
-        couple_id: inviterCouple.id,
-        user_id: user.id,
-      });
-      if (joinErr) throw joinErr;
-
-      const { error: leaveErr } = await service
-        .from("couple_members")
-        .delete()
-        .eq("couple_id", existing.couple_id)
-        .eq("user_id", user.id);
-      if (leaveErr) throw leaveErr;
-    } else {
-      return existing.couple_id;
-    }
-  } else {
-    const { error: insertErr } = await supabase.from("couple_members").insert({
-      couple_id: inviterCouple.id,
-      user_id: user.id,
-    });
-    if (insertErr) throw insertErr;
-  }
-
-  const { data: tokenRow } = await supabase
-    .from("ics_feed_tokens")
-    .select("token")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (!tokenRow) {
-    const token = randomBytes(24).toString("hex");
-    await supabase.from("ics_feed_tokens").insert({ user_id: user.id, token });
-  }
+  const coupleId = await joinCoupleCore(user, supabase, inviteToken);
 
   revalidatePath("/");
   revalidatePath("/home");
   revalidatePath("/profile");
-  return inviterCouple.id;
+  return coupleId;
 }
 
 async function readBundledCalendar() {
@@ -607,6 +464,29 @@ export async function createPlan(input: CreatePlanInput) {
   return data;
 }
 
+export async function deleteAllTripsForCouple(options?: {
+  keepJoshuaTree?: boolean;
+}) {
+  const { supabase, coupleId } = await requireCouple();
+  const keepJoshuaTree = options?.keepJoshuaTree !== false;
+
+  let query = supabase.from("plans").delete().eq("couple_id", coupleId);
+  if (keepJoshuaTree) {
+    query = query.neq("slug", "joshua-tree");
+  }
+
+  const { data, error } = await query.select("id");
+
+  if (error) throw error;
+
+  revalidatePath("/plans");
+  revalidatePath("/home");
+  revalidatePath("/profile");
+  revalidatePath("/settings");
+
+  return { deleted: data?.length ?? 0 };
+}
+
 export type UpdatePlanSettingsInput = {
   planId: string;
   tripLengthDays?: number;
@@ -642,46 +522,6 @@ export async function updatePlanSettings(input: UpdatePlanSettingsInput) {
   if (plan?.slug) revalidatePath(`/plans/${plan.slug}`);
 }
 
-async function findOrCreatePlanForDestination(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  coupleId: string,
-  destination: string,
-  destinationKey: string,
-) {
-  const { data: existing } = await supabase
-    .from("plans")
-    .select("*")
-    .eq("couple_id", coupleId)
-    .eq("destination_key", destinationKey)
-    .neq("slug", "joshua-tree")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (existing) return existing;
-
-  const { uniquePlanSlug } = await import("@/lib/plan-utils");
-  const slug = uniquePlanSlug(destinationKey);
-
-  const { data: created, error } = await supabase
-    .from("plans")
-    .insert({
-      couple_id: coupleId,
-      slug,
-      title: destination,
-      destination,
-      destination_key: destinationKey,
-      status: "building",
-      trip_length_days: 3,
-      date_mode: "flexible_month",
-    })
-    .select()
-    .single();
-
-  if (error) throw error;
-  return created;
-}
-
 export async function getInboxReelSaveCount() {
   const { supabase, coupleId } = await requireCouple();
   const start = new Date();
@@ -706,202 +546,90 @@ export async function ingestLink(
     planId?: string;
     destination?: string;
     destinationKey?: string;
-    /** MVP: save to profile inbox (counts toward free reel limit). */
-    inbox?: boolean;
+    /** Force profile inbox (strays). Default: auto-route to matching trip when possible. */
+    forceInbox?: boolean;
   },
 ) {
   const { supabase, user, coupleId } = await requireCouple();
-  const { detectLinkDestination, detectSourceType } = await import(
-    "@/lib/link-destination"
+  const { ingestLinkCore } = await import("@/lib/link-ingest-core");
+  const result = await ingestLinkCore(
+    supabase,
+    user,
+    coupleId,
+    sourceUrl,
+    options,
   );
-  const { destinationKeyFromLabel } = await import("@/lib/plan-utils");
-  const { canSaveReel, isProSubscriber } = await import("@/lib/pricing");
-
-  const trimmed = sourceUrl.trim();
-  if (!trimmed) throw new Error("Paste a link first.");
-
-  const sourceType = detectSourceType(trimmed);
-  let destination = options?.destination;
-  let destinationKey = options?.destinationKey;
-  let confidence: "high" | "medium" | "low" = "high";
-  let placeName: string | null = null;
-  let rawMetadata: Record<string, unknown> = {};
-
-  if (!destination || !destinationKey) {
-    const detected = await detectLinkDestination(trimmed, sourceType);
-    destination = detected.destination;
-    destinationKey = detected.destination_key;
-    confidence = detected.confidence;
-    placeName = detected.place_name;
-    rawMetadata = { ...detected.raw_metadata };
-  }
-
-  const saveToInbox = !options?.planId;
-
-  if (confidence === "low" && !options?.destination) {
-    return {
-      needsDestination: true as const,
-      sourceUrl: trimmed,
-      sourceType,
-      inbox: saveToInbox,
-    };
-  }
-
-  if (saveToInbox && !options?.planId) {
-    const { data: couple } = await supabase
-      .from("couples")
-      .select("is_pro")
-      .eq("id", coupleId)
-      .single();
-    const used = await getInboxReelSaveCount();
-    if (!canSaveReel(used, isProSubscriber(couple?.is_pro))) {
-      const err = new Error("SAVE_LIMIT_REACHED");
-      (err as Error & { code: string }).code = "SAVE_LIMIT_REACHED";
-      throw err;
-    }
-
-    const meta = rawMetadata as Record<string, unknown>;
-    const title =
-      options?.title ??
-      (typeof meta.title === "string" ? meta.title : null) ??
-      placeName ??
-      trimmed.slice(0, 80);
-
-    const { data: draft, error } = await supabase
-      .from("drafts")
-      .insert({
-        couple_id: coupleId,
-        plan_id: null,
-        created_by: user.id,
-        source_url: trimmed,
-        source_type: sourceType,
-        title,
-        place_name: placeName,
-        status: "draft",
-        raw_metadata: {
-          ...meta,
-          destination: destination ?? "Trip ideas",
-          destination_key:
-            destinationKey ?? destinationKeyFromLabel(destination ?? "Trip ideas"),
-        },
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    await runDraftMatch(supabase, coupleId, user.id, draft, trimmed);
-
-    revalidatePath("/profile");
-    revalidatePath("/plans");
-    revalidatePath("/home");
-
-    return {
-      needsDestination: false as const,
-      inbox: true as const,
-      draft,
-      planSlug: undefined,
-      planId: undefined,
-      matched: !!draft.matched_at,
-    };
-  }
-
-  let planId = options?.planId;
-  let planSlug: string | undefined;
-
-  if (planId) {
-    const { data: plan } = await supabase
-      .from("plans")
-      .select("slug")
-      .eq("id", planId)
-      .eq("couple_id", coupleId)
-      .single();
-    planSlug = plan?.slug;
-  } else {
-    const plan = await findOrCreatePlanForDestination(
-      supabase,
-      coupleId,
-      destination!,
-      destinationKey ?? destinationKeyFromLabel(destination!),
-    );
-    planId = plan.id;
-    planSlug = plan.slug;
-  }
-
-  const meta = rawMetadata as Record<string, unknown>;
-  const title =
-    options?.title ??
-    (typeof meta.title === "string" ? meta.title : null) ??
-    placeName ??
-    trimmed.slice(0, 80);
-
-  const { data: draft, error } = await supabase
-    .from("drafts")
-    .insert({
-      couple_id: coupleId,
-      plan_id: planId,
-      created_by: user.id,
-      source_url: trimmed,
-      source_type: sourceType,
-      title,
-      place_name: placeName,
-      status: "draft",
-      suggested_day: null,
-      sort_order: 0,
-      raw_metadata: rawMetadata,
-    })
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  await runDraftMatch(supabase, coupleId, user.id, draft, trimmed);
 
   revalidatePath("/home");
   revalidatePath("/plans");
   revalidatePath("/profile");
-  if (planSlug) revalidatePath(`/plans/${planSlug}`);
+  if (result.needsDestination === false && result.planSlug) {
+    revalidatePath(`/plans/${result.planSlug}`);
+  }
 
-  return {
-    needsDestination: false as const,
-    inbox: false as const,
-    planSlug,
-    planId,
-    draft,
-    matched: !!draft.matched_at,
-  };
+  return result;
 }
 
-async function runDraftMatch(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  coupleId: string,
-  userId: string,
-  draft: { id: string; matched_at?: string | null },
-  trimmed: string,
-) {
-  const { normalizeSourceUrl } = await import("@/lib/normalize-url");
-  const normalized = normalizeSourceUrl(trimmed);
-  const { data: partnerDrafts } = await supabase
+export async function moveDraftToInbox(draftId: string) {
+  const { supabase, coupleId } = await requireCouple();
+  const { error } = await supabase
     .from("drafts")
-    .select("id, created_by, title, source_url")
-    .eq("couple_id", coupleId)
-    .neq("created_by", userId)
-    .not("source_url", "is", null);
+    .update({ plan_id: null })
+    .eq("id", draftId)
+    .eq("couple_id", coupleId);
+  if (error) throw error;
+  revalidatePath("/home");
+  revalidatePath("/plans");
+  revalidatePath("/profile");
+}
 
-  const match = (partnerDrafts ?? []).find(
-    (d) => d.source_url && normalizeSourceUrl(d.source_url) === normalized,
-  );
-  if (match) {
-    const now = new Date().toISOString();
-    await supabase
-      .from("drafts")
-      .update({ matched_at: now, match_partner_draft_id: match.id })
-      .eq("id", draft.id);
-    await supabase
-      .from("drafts")
-      .update({ matched_at: now, match_partner_draft_id: draft.id })
-      .eq("id", match.id);
-  }
+export async function assignDraftToPlan(draftId: string, planId: string) {
+  const { supabase, coupleId } = await requireCouple();
+  const { data: plan } = await supabase
+    .from("plans")
+    .select("slug")
+    .eq("id", planId)
+    .eq("couple_id", coupleId)
+    .single();
+  if (!plan) throw new Error("Plan not found");
+
+  const { error } = await supabase
+    .from("drafts")
+    .update({ plan_id: planId })
+    .eq("id", draftId)
+    .eq("couple_id", coupleId)
+    .is("plan_id", null);
+  if (error) throw error;
+
+  revalidatePath("/home");
+  revalidatePath("/plans");
+  revalidatePath("/profile");
+  revalidatePath(`/plans/${plan.slug}`);
+}
+
+export async function assignDraftToDay(
+  draftId: string,
+  day: string,
+  planId: string,
+) {
+  const { supabase, coupleId } = await requireCouple();
+  const { data: plan } = await supabase
+    .from("plans")
+    .select("slug")
+    .eq("id", planId)
+    .eq("couple_id", coupleId)
+    .single();
+  if (!plan) throw new Error("Plan not found");
+
+  const { error } = await supabase
+    .from("drafts")
+    .update({ suggested_day: day })
+    .eq("id", draftId)
+    .eq("plan_id", planId)
+    .eq("couple_id", coupleId);
+  if (error) throw error;
+
+  revalidatePath(`/plans/${plan.slug}`);
 }
 
 export async function getMatchedDrafts() {

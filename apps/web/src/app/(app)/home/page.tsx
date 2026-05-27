@@ -13,6 +13,8 @@ import {
   dayRangeISO,
 } from "@/lib/dates";
 import type { CalendarEvent, Draft, Plan } from "@/lib/types";
+import { MatchedIdeasPanel } from "@/components/plans/MatchedIdeasPanel";
+import { getMatchedDrafts } from "@/app/actions";
 import { redirect } from "next/navigation";
 
 export default async function HomePage({
@@ -109,6 +111,13 @@ export default async function HomePage({
 
   const showTripCard = today < new Date("2026-05-19");
 
+  let matches: Awaited<ReturnType<typeof getMatchedDrafts>> = [];
+  try {
+    matches = await getMatchedDrafts();
+  } catch {
+    /* migration 006 may not be applied */
+  }
+
   return (
     <Suspense fallback={<p className="text-muted">Loading…</p>}>
       {!ctx.partner && inviteUrl ? (
@@ -121,6 +130,8 @@ export default async function HomePage({
         partnerNextEvent={(partnerEvents?.[0] as CalendarEvent) ?? null}
         partnerName={ctx.partner?.display_name ?? null}
       />
+
+      <MatchedIdeasPanel matches={matches} />
 
       {showTripCard ? (
         <FeaturedTripCard

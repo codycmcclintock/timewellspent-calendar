@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/user-context";
 import { joinInviteUrl } from "@/lib/app-url";
-import { NewPlanWizard } from "@/components/plans/NewPlanWizard";
+import { CreateTripFlow } from "@/components/plans/create-trip/CreateTripFlow";
 import { redirect } from "next/navigation";
 
 export default async function NewPlanPage() {
@@ -20,10 +20,9 @@ export default async function NewPlanPage() {
     : null;
 
   return (
-    <NewPlanWizard
+    <CreateTripFlow
       inviteUrl={inviteUrl}
-      hasPartner={!!ctx.partner}
-      partnerName={ctx.partner?.display_name ?? null}
+      inviteToken={couple?.invite_token ?? null}
     />
   );
 }

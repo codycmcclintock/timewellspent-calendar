@@ -7,13 +7,25 @@ function sourceBadge(type: string | null) {
   return "Link";
 }
 
-export function UnsortedDraftCard({ draft }: { draft: Draft }) {
+export function UnsortedDraftCard({
+  draft,
+  isMatch,
+}: {
+  draft: Draft;
+  isMatch?: boolean;
+}) {
   const meta = draft.raw_metadata ?? {};
   const thumb =
     typeof meta.thumbnail === "string" ? meta.thumbnail : null;
 
   return (
-    <article className="flex gap-3 rounded-2xl bg-card p-3 ring-1 ring-black/5">
+    <article
+      className={`flex gap-3 rounded-2xl p-3 ${
+        isMatch || draft.matched_at
+          ? "bg-gold/10 ring-2 ring-gold/40"
+          : "bg-card ring-1 ring-black/5"
+      }`}
+    >
       {thumb ? (
         <img src={thumb} alt="" className="h-16 w-16 shrink-0 rounded-xl object-cover" />
       ) : (
@@ -23,9 +35,16 @@ export function UnsortedDraftCard({ draft }: { draft: Draft }) {
       )}
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <p className="font-semibold text-ink line-clamp-2">
-            {draft.title ?? "Saved idea"}
-          </p>
+          <div className="min-w-0">
+            {isMatch || draft.matched_at ? (
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-gold">
+                It&apos;s a match!
+              </p>
+            ) : null}
+            <p className="font-semibold text-ink line-clamp-2">
+              {draft.title ?? "Saved idea"}
+            </p>
+          </div>
           <span className="shrink-0 rounded-full bg-shell px-2 py-0.5 text-[10px] font-medium text-muted">
             {sourceBadge(draft.source_type)}
           </span>

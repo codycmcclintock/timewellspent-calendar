@@ -2,13 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { parseISO, isBefore, startOfDay } from "date-fns";
+import { HelpCircle } from "lucide-react";
 import type { Plan } from "@/lib/types";
 import { PlanCreateCard } from "@/components/plans/PlanCreateCard";
 import { LinkIngestBar } from "@/components/plans/LinkIngestBar";
 import { isLinkIngestEnabled } from "@/lib/feature-flags";
-import { HowItWorksPlans } from "@/components/plans/HowItWorksPlans";
+import { PlansEmptyState } from "@/components/plans/PlansEmptyState";
 import { PlanCard } from "@/components/PlanCard";
-import Image from "next/image";
 
 export function PlansHub({
   plans,
@@ -20,6 +20,7 @@ export function PlansHub({
   hasPartner: boolean;
 }) {
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
+  const [helpOpen, setHelpOpen] = useState(false);
   const today = startOfDay(new Date());
 
   const { upcoming, past } = useMemo(() => {
@@ -38,46 +39,42 @@ export function PlansHub({
 
   return (
     <div>
-      <div className="flex items-end justify-between gap-2">
+      <div className="flex items-start justify-between gap-2">
         <div>
           <h2 className="font-serif text-2xl font-semibold">Plans</h2>
           <p className="mt-1 text-sm text-muted">
             Trips built from links, reels, and ideas.
           </p>
         </div>
-        <HowItWorksPlans />
+        {isEmpty ? (
+          <button
+            type="button"
+            onClick={() => setHelpOpen(true)}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/5 hover:text-ink"
+            aria-label="How plans work"
+          >
+            <HelpCircle className="h-5 w-5" />
+          </button>
+        ) : null}
       </div>
 
       {isLinkIngestEnabled() ? (
         <div className="mt-5">
-          <LinkIngestBar inbox placeholder="Save a reel to your inbox…" />
+          <LinkIngestBar placeholder="Paste a TikTok or Instagram link…" />
         </div>
       ) : null}
 
-      <div className="mt-6">
-        <PlanCreateCard />
-      </div>
+      {!isEmpty ? (
+        <div className="mt-6">
+          <PlanCreateCard />
+        </div>
+      ) : null}
 
       {isEmpty ? (
-        <div className="mt-6 rounded-2xl bg-planner px-6 py-10 text-center ring-1 ring-coral/10">
-          <Image
-            src="/ruffles-logo.png"
-            alt=""
-            width={56}
-            height={56}
-            className="mx-auto h-14 w-14 object-contain"
-          />
-          <p className="mt-4 font-serif text-xl font-semibold text-ink">
-            No plans yet
-          </p>
-          <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted">
-            Nothing planned yet. What&apos;s something you&apos;ve been wanting to do together?
-            Start a trip below.
-          </p>
-          <div className="mt-6">
-            <HowItWorksPlans variant="inline" />
-          </div>
-        </div>
+        <PlansEmptyState
+          helpOpen={helpOpen}
+          onHelpClose={() => setHelpOpen(false)}
+        />
       ) : (
         <>
           <div className="mt-4 flex gap-2">
@@ -85,7 +82,9 @@ export function PlansHub({
               type="button"
               onClick={() => setTab("upcoming")}
               className={`rounded-full px-4 py-1.5 text-sm font-medium ${
-                tab === "upcoming" ? "bg-coral text-white" : "bg-card text-muted ring-1 ring-black/5"
+                tab === "upcoming"
+                  ? "bg-coral text-white"
+                  : "bg-card text-muted ring-1 ring-black/5"
               }`}
             >
               Upcoming
@@ -94,7 +93,9 @@ export function PlansHub({
               type="button"
               onClick={() => setTab("past")}
               className={`rounded-full px-4 py-1.5 text-sm font-medium ${
-                tab === "past" ? "bg-coral text-white" : "bg-card text-muted ring-1 ring-black/5"
+                tab === "past"
+                  ? "bg-coral text-white"
+                  : "bg-card text-muted ring-1 ring-black/5"
               }`}
             >
               Past
@@ -102,7 +103,7 @@ export function PlansHub({
           </div>
           <div className="mt-4 space-y-4">
             {list.length === 0 ? (
-              <p className="text-center text-sm text-muted py-8">
+              <p className="py-8 text-center text-sm text-muted">
                 No {tab} plans.
               </p>
             ) : (

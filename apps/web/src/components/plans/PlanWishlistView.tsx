@@ -9,9 +9,14 @@ import { LinkIngestBar } from "@/components/plans/LinkIngestBar";
 import { UnsortedDraftCard } from "@/components/plans/UnsortedDraftCard";
 import { PlanSettingsSheet } from "@/components/plans/PlanSettingsSheet";
 import { SmartPlanButton } from "@/components/plans/SmartPlanButton";
+import { TripCreatedBanner } from "@/components/plans/TripCreatedBanner";
 import { TripEventCard, TripDriveChip } from "@/components/TripEventCard";
 import { dayThemeFor } from "@/lib/joshua-tree-day-themes";
 import { isDriveEvent } from "@/lib/infer-event-category";
+import {
+  planTripDayKeys,
+  tripDensityThreshold,
+} from "@/lib/plan-trip-days";
 import type { CalendarEvent, Draft, Plan, PlanDayTheme } from "@/lib/types";
 
 function dayKey(iso: string) {
@@ -53,6 +58,24 @@ export function PlanWishlistView({
   const unsorted = drafts.filter((d) => !d.suggested_day);
   const scheduled = drafts.filter((d) => d.suggested_day);
 
+  const tripDays = useMemo(() => planTripDayKeys(plan), [plan]);
+
+  const wishTab =
+    searchParams.get("tab") === "all" || !searchParams.get("tab")
+      ? "all"
+      : tripDays.includes(searchParams.get("tab")!)
+        ? searchParams.get("tab")!
+        : "all";
+
+  const visibleDrafts = useMemo(() => {
+    if (wishTab === "all") return unsorted;
+    return drafts.filter((d) => d.suggested_day === wishTab);
+  }, [wishTab, unsorted, drafts]);
+
+  const densityLimit = tripDensityThreshold(plan, tripDays.length);
+  const showDensityWarning =
+    wishTab === "all" && unsorted.length > densityLimit;
+
   const days = useMemo(() => {
     const keys = new Set<string>();
     for (const e of events) keys.add(dayKey(e.starts_at));
@@ -82,11 +105,21 @@ export function PlanWishlistView({
     router.replace(`/plans/${plan.slug}?${params.toString()}`, { scroll: false });
   }
 
+  function selectWishTab(tab: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (tab === "all") params.delete("tab");
+    else params.set("tab", tab);
+    router.replace(`/plans/${plan.slug}?${params.toString()}`, {
+      scroll: false,
+    });
+  }
+
   const dayIndex = selectedDay ? days.indexOf(selectedDay) : 0;
   const showTimeline = plan.status === "scheduled" && events.length > 0;
 
   return (
     <div className="-mx-4">
+      <TripCreatedBanner />
       <div className="rounded-b-3xl bg-gradient-to-br from-primary-500/12 via-planner to-shell px-4 pb-6 pt-2 text-center">
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-coral">
           {plan.status === "building" ? "Building your trip" : "Scheduled"}
@@ -112,19 +145,65 @@ export function PlanWishlistView({
       </div>
 
       <section className="mt-6 px-4">
-        <h2 className="font-serif text-lg font-semibold text-ink">Unsorted</h2>
+        <h2 className="font-serif text-lg font-semibold text-ink">Ideas</h2>
         <p className="text-sm text-muted">
-          Reels and links land here until you Smart Plan or schedule them.
+          All unsorted reels, or filter by day once you schedule them.
         </p>
-        {unsorted.length === 0 ? (
+
+        {showDensityWarning ? (
+          <p className="mt-3 rounded-xl border border-amber-200/80 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+            That&apos;s a lot for {tripDays.length || plan.trip_length_days || 3}{" "}
+            days — Smart Plan or trim before you go.
+          </p>
+        ) : null}
+
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+          <button
+            type="button"
+            onClick={() => selectWishTab("all")}
+            className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${
+              wishTab === "all"
+                ? "bg-coral text-white"
+                : "bg-card text-muted ring-1 ring-black/5"
+            }`}
+          >
+            All
+            {unsorted.length > 0 ? ` (${unsorted.length})` : ""}
+          </button>
+          {tripDays.map((d) => {
+            const count = drafts.filter((x) => x.suggested_day === d).length;
+            return (
+              <button
+                key={d}
+                type="button"
+                onClick={() => selectWishTab(d)}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${
+                  wishTab === d
+                    ? "bg-coral text-white"
+                    : "bg-card text-muted ring-1 ring-black/5"
+                }`}
+              >
+                {format(parseISO(d), "EEE MMM d")}
+                {count > 0 ? ` (${count})` : ""}
+              </button>
+            );
+          })}
+        </div>
+
+        {visibleDrafts.length === 0 ? (
           <p className="mt-4 rounded-2xl bg-card p-6 text-center text-sm text-muted ring-1 ring-black/5">
-            Paste a link above — we&apos;ll add it to this trip.
+            {wishTab === "all"
+              ? "Paste a link above — we&apos;ll add it to this trip."
+              : "Nothing scheduled for this day yet."}
           </p>
         ) : (
           <ul className="mt-3 space-y-2">
-            {unsorted.map((d) => (
+            {visibleDrafts.map((d) => (
               <li key={d.id}>
-                <UnsortedDraftCard draft={d} />
+                <UnsortedDraftCard
+                  draft={d}
+                  isMatch={!!d.matched_at}
+                />
               </li>
             ))}
           </ul>

@@ -24,11 +24,18 @@ export default async function ProfilePage() {
     .eq("id", ctx.coupleId)
     .single();
 
-  const { data: drafts } = await supabase
-    .from("drafts")
-    .select("*")
-    .eq("couple_id", ctx.coupleId)
-    .order("created_at", { ascending: false });
+  const [{ data: drafts }, { data: plans }] = await Promise.all([
+    supabase
+      .from("drafts")
+      .select("*")
+      .eq("couple_id", ctx.coupleId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("plans")
+      .select("id, slug, title, destination, destination_key")
+      .eq("couple_id", ctx.coupleId)
+      .order("created_at", { ascending: false }),
+  ]);
 
   const inboxSavesThisMonth = await getInboxReelSaveCount();
   const isPro = ctx.isPro ?? couple?.is_pro ?? false;
@@ -82,6 +89,7 @@ export default async function ProfilePage() {
       <div className="mt-8 space-y-6">
         <SavedInbox
           drafts={(drafts ?? []) as Draft[]}
+          plans={(plans ?? []) as Plan[]}
           inboxSavesThisMonth={inboxSavesThisMonth}
           isPro={isPro}
         />

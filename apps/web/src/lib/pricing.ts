@@ -1,6 +1,6 @@
 /** MVP pricing — one paywall: saved reels to your inbox. */
 
-export const FREE_INBOX_REEL_SAVES_PER_MONTH = 25;
+export const FREE_INBOX_REEL_SAVES_PER_MONTH = 15;
 
 export const PRO_PRICE_MONTHLY = 4.99;
 export const PRO_PRICE_YEARLY = 39;

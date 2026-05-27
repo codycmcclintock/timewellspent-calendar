@@ -16,7 +16,9 @@
    [`002_profiles_rls.sql`](supabase/migrations/002_profiles_rls.sql),  
    [`003_event_ai_meta.sql`](supabase/migrations/003_event_ai_meta.sql),  
    [`004_profiles_couple_read.sql`](supabase/migrations/004_profiles_couple_read.sql),  
-   [`005_plans_wishlist.sql`](supabase/migrations/005_plans_wishlist.sql).
+   [`005_plans_wishlist.sql`](supabase/migrations/005_plans_wishlist.sql),  
+   [`006_ruffles_item_types.sql`](supabase/migrations/006_ruffles_item_types.sql),  
+   [`007_profiles_ios_onboarding.sql`](supabase/migrations/007_profiles_ios_onboarding.sql).
 3. **Authentication → Providers:** enable **Google** and **Apple**.
 4. **Authentication → URL configuration:** add redirect URLs:
    - `https://YOUR-VERCEL-DOMAIN/auth/callback`
@@ -93,13 +95,13 @@ Share **Profile → Bring her into Ruffles** or the home invite banner. Link for
 | | Free | Pro ($39/yr or $4.99/mo) |
 |---|------|--------------------------|
 | Trips, people, voice, AI days, matches | ✓ | ✓ |
-| Saved reels (inbox, unassigned) | 25/month | Unlimited |
+| Saved reels (inbox, unassigned) | 15/month | Unlimited |
 
 Set `RUFFLES_DEMO_PRO=true` locally to test Pro. Checkout is not wired yet — upgrade sheet is informational.
 
 ### Plans hub (save → match → plan)
 
-1. **Profile / Plans / Home → Future** — paste IG/TikTok; saves go to your **inbox** (tagged by destination). Trip pages paste directly onto that trip (does not count toward the 25).
+1. **Profile / Plans / Home → Future** — paste IG/TikTok; saves go to your **inbox** (tagged by destination). Trip pages paste directly onto that trip (does not count toward the 15).
 2. **💫 Match** — when you and your partner save the same link, it surfaces on Plans.
 3. **Smart Plan** and **Plan this day from our saves** — free; need `ANTHROPIC_API_KEY`.
 4. Disable link UI with `RUFFLES_LINK_INGEST=false`.
@@ -128,6 +130,8 @@ npm install && npm run dev
 ```
 
 ## App overview
+
+**Native iOS:** [`docs/NATIVE_IOS_SUPABASE.md`](docs/NATIVE_IOS_SUPABASE.md) (schema, auth, keys) · [`docs/IOS_STARTER_SPEC_ALIGNMENT.md`](docs/IOS_STARTER_SPEC_ALIGNMENT.md) (starter spec fixes) · [`docs/WEB_IOS_PRD_ALIGNMENT.md`](docs/WEB_IOS_PRD_ALIGNMENT.md) (revised core flow vs web)
 
 | Area | Description |
 |------|-------------|
